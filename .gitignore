@@ -21,3 +21,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+scrape/pd-mysql.ipynb
+scrape/.ipynb_checkpoints/pd-mysql-checkpoint.ipynb
+scrape/.ipynb_checkpoints/to-CSV-checkpoint.ipynb
