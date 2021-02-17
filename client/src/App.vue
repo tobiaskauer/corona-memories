@@ -14,7 +14,7 @@
             v-for="country,i in countries"
             :key="i"
             :d="country.line"
-            stroke-width="2"
+            stroke-width="3"
             :class="(country.name == currentCountry) ? 'active' : 'hidden-'+(country.id%3)" />
         </g>
 
