@@ -6,33 +6,33 @@
       class="form-control"
       type="text"
       placeholder="Default input">
+      <div v-html="error" />
     <button
       @click="sendMemory">Send</button>
   </div>
 </template>
 
 <script>
-import MemorySendService from '@/services/memorySendService'
+import MemoryService from '@/services/memoryService'
 export default {
   data () {
     return {
-      memory: 'abc123'
+      memory: 'abc123',
+      error: null
     }
   },
 
-  /*watch: {
-    comment (value) {
-      console.log(value)
-    }
-  }*/
-
   methods: {
     async sendMemory () {
-      const response = await MemorySendService.sendMemory({
-        text: this.memory,
-        morestuff: "foobar"
-      })
-      console.log(response)
+      try {
+        await MemoryService.sendMemory({
+          text: this.memory,
+          country: "Germany",
+          morestuff: "foobar"
+        })
+      } catch (err) {
+        this.error = err.response.data.error
+      }
     }
   }
 }

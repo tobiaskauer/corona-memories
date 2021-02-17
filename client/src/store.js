@@ -1,20 +1,24 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import axios from 'axios'
+//import axios from 'axios'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    countries: null,
+    country: '',
+    countries: [],
   },
 
   getters: {
-    getCountries: state => state.countries,
+    //getCountries: state => state.countries,
   },
 
   mutations: {
-    callAPI() {
+    setCountry(state, countryName) {
+      state.country = countryName
+    }
+    /*callAPI() {
       let param = {foo: "country", country: 'Germany'}
       axios
         .get('/projects/corona/api.php',param)
@@ -22,9 +26,12 @@ export default new Vuex.Store({
           console.log(response)
           this.countries = response.data
         })
-    }
+    }*/
   },
 
   actions: {
+    setCountry({commit}, countryName) {
+      commit('setCountry', countryName)
+    }
   }
 })
