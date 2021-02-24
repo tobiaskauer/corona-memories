@@ -24,3 +24,5 @@ pnpm-debug.log*
 scrape/pd-mysql.ipynb
 scrape/.ipynb_checkpoints/pd-mysql-checkpoint.ipynb
 scrape/.ipynb_checkpoints/to-CSV-checkpoint.ipynb
+py-scraper/.ipynb_checkpoints/pd-sql-checkpoint.ipynb
+py-scraper/pd-sql.ipynb

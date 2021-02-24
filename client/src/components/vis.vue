@@ -1,6 +1,6 @@
 <template>
-  <svg :width="dimensions.width" :height="dimensions.height" v-if="mounted">
-
+  <svg :width="dimensions.width" :height="dimensions.height" v-if="mounted ">
+      <text x="100" y="100">{{time}}</text>
       <path
         :d="line"
         stroke-width="3"
@@ -8,16 +8,67 @@
         stroke="black"/>
 
     <g class="memories" v-if="beeswarm" transform="translate(0,0)">
-      <circle
-        v-for="memory, j in beeswarm"
-        :key="j"
-        :cx="memory.x"
-        :cy="memory.y"
-        :opacity="opacity"
-        :r="memory.weight"
-        fill="#FA5E2D"
-        @mouseover="hover(memory,$event)"
-        @mouseout="hover(memory,$event)" />
+
+      <g v-for="memory, j in beeswarm" :key="j">
+      <!--<g v-for="memory, j in beeswarm.filter((e,i)=>i < time)" :key="j">-->
+      
+        <circle
+          :cx="memory.x"
+          :cy="memory.y"
+          :opacity="opacity"
+          :r="memory.weight"
+          fill="#FA5E2D"
+          @click="$emit('showMemory',memory)"
+          @mouseover="hover(memory,$event)"
+          @mouseout="hover(memory,$event)" />
+          
+
+        <!--<text
+          :x="memory.x"
+          :y="memory.y"
+          fill="#FA5E2D"
+          @click="$emit('showMemory',memory)"
+          @mouseover="hover(memory,$event)"
+          @mouseout="hover(memory,$event)">{{memory.comment}}
+          </text>-->
+        </g>
+    </g>
+    
+
+
+    <g class="showLine" v-if="showLine" :transform="'translate('+linePosition[0]+',0)'">
+      <line stroke="black" x1="0" x2="0" :y1="(dimensions.height)" :y2="0" stroke-dasharray="2" stroke-width="2" />
+      <g class="button" :transform="'translate(0,'+linePosition[1]+')'" @click="$emit('showForm', formatDate(newMemoryDate))">
+        <circle r="15" cx="0" cy="0" fill="white" stroke="black" />
+        <path d="M6 0H9V6H15V9H9V15H6V9H0V6H6V0Z" fill="#black" transform="translate(-7,-7)" />
+        <text x="20" y="4" v-if="newMemoryDate">It was on {{formatDate(newMemoryDate)}}</text>
+      </g>
+    </g>
+
+    <g class="overlay" v-if="overlay">
+      <rect x="0" y="0" :width="dimensions.width" :height="dimensions.height" fill="black" opacity=".5" pointer-events="none"/>
+      <g v-if="currentMemory">
+        
+        <circle
+          r=20
+          :cx="currentMemory.x"
+          :cy="currentMemory.y"
+          fill="#FA5E2D" />
+          
+        <!--<line
+          :x1="currentMemory.x"
+          :y1="currentMemory.y"
+          :x2="(dimensions.width/2)"
+          :y2="(dimensions.height/2)"
+          stroke-width="2"
+          stroke="#FA5E2D"/>-->
+        <path
+          :d="currentMemory.connector"
+          stroke-width="2"
+          fill="none"
+          stroke="#FA5E2D"/>
+          
+      </g>
     </g>
   </svg>
 </template>
@@ -31,8 +82,13 @@ export default {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
       mounted: false,
-      opacity: 0.7,
-      forceDistance: 6
+      opacity: 0.7, //circle opacity when not hovered
+      forceDistance: 6, //distance of reactions to line
+      linePosition: [0,0],
+      newMemoryDate: null,
+      currentMemory: null,
+      time: 1,
+      
     }
   },
 
@@ -40,7 +96,10 @@ export default {
     dimensions: Object,
     cases: Array,
     metric: String,
-    memories: Array
+    memories: Array,
+    showLine: Boolean,
+    overlay: Boolean,
+
   },
 
   computed: {
@@ -58,7 +117,8 @@ export default {
     scales: function() {
       if(!this.parsedCases) return null
 
-      let yDomain = d3.extent(this.parsedCases, d=>d[this.metric])
+      //let yDomain = d3.extent(this.parsedCases, d=>d[this.metric])
+      let yDomain = [0,d3.max([100,d3.max(this.parsedCases, d=>d[this.metric])])] //minimum of 100 cases to have a somewhat consistent layout
       let xDomain = d3.extent(this.parsedCases, d=>d.date)
       return {
         x: d3.scaleTime().domain(xDomain).range([this.dimensions.left,this.dimensions.width-this.dimensions.left-this.dimensions.right]),
@@ -81,8 +141,8 @@ export default {
      for (let i = 0; i < this.memories.length; ++i) {
        force.tick()
      }
-     return force.nodes()
 
+     return force.nodes()
    },
 
     line: function() {
@@ -98,48 +158,57 @@ export default {
   },
 },
 
+watch: {
+  beeswarm: function(arr) { //show circle on overlay after beeswarm changed
+    let c = arr.filter(e=>e.active)[0]
+    if(c) {
+      this.currentMemory = c
+      this.currentMemory.connector = `
+        M${c.x} ${c.y}
+        Q${(this.dimensions.width/2)} ${c.y}
+        ${(this.dimensions.width/2)} ${(this.dimensions.height/2)}`;
+    }
+  }
+},
+
 
   async mounted() {
     this.mounted = true;
-
-
-
-    /*this.countries = (await getCasesService.getCountries()).data.map(e => e.country)
-    let formatTime = d3.timeFormat("%Y-%m-%d")
-    let reactionArr = [] //create sample reactions
-    d3.range(50000).forEach(() => {
-      let date = this.getRandomDate(this.scales.x.domain())
-      reactionArr.push({
-        date: formatTime(date),
-        value: this.parsedCases.find(c => formatTime(c.date) == formatTime(date))[this.metric],
-        comment: "foobar",
-        weight: Math.floor(Math.random()*3+2),
-        country: this.countries[Math.floor(Math.random()*this.countries.length)],
-      })
-    })
-
-    console.log(JSON.stringify(reactionArr))*/
+    document.addEventListener('mousemove', this.onMouseMove)
+    /*this.$nextTick(() => {
+      this.animate()
+    })*/
   },
 
   methods: {
-    getRandomDate: function(extent) {
-      let date = new Date(extent[0].getTime() + Math.random() * (extent[1].getTime() - extent[0].getTime()))
-      date.setHours(0,0,0)
-      return date
-    },
-
-    hover: function(reaction,event) {
+    hover: function(memory,event) { //hovering circles
       let r = 10
       let opacity = 1
       if(event.type == 'mouseout') {
-        r = reaction.weight
+        r = memory.weight
         opacity = this.opacity
       }
       d3.select(event.target).transition("50").attr("r",r).attr("opacity",opacity)
-    }
+    },
 
+    onMouseMove: function(event) { //follow line
+      if(this.showLine && this.scales) {
+        this.linePosition = [event.clientX,event.clientY]
+        this.newMemoryDate = this.scales.x.invert(event.clientX)
+      }
+    },
+
+    /*animate: function() {
+      if(!this.memories) return null
+      setTimeout(()  => {
+        this.time++
+       if(this.time <= this.memories.length) this.animate();
+      }, .5);
+    },*/
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+
+</style>
