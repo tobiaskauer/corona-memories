@@ -9,16 +9,14 @@ module.exports = {
         },
         attributes: [
           ['date','d'],
-          ['relative','r'],
-          ['new','n'],
-          ['cumulative','c'],
+          [req.body.metric,'v'],
         ]
       });
       res.send(cases)
     } catch (err) {
       console.log(err)
       res.status(500).send({
-        error: 'an error has occured trying to show the songs'
+        error: 'an error has occured trying to get numbers'
       })
     }
   },

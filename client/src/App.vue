@@ -1,15 +1,15 @@
 <template>
   <v-app>
     <div class="formWrapper" v-if="newMemory.showForm">
-      <memoryForm 
+      <memoryForm
         :date="newMemory.date"
         :country="currentCountry"
         @close="toggleForm(false)"
         />
     </div>
     <div class="memoryWrapper" v-if="displayMemory.display">
-      <memoryDisplay 
-        :memory="displayMemory.memory"  
+      <memoryDisplay
+        :memory="displayMemory.memory"
         @close="showMemory(false)"
       />
     </div>
@@ -17,11 +17,11 @@
       <vis
         v-if="cases"
         :dimensions="dimensions"
-        metric="relative"
+
         :cases="cases"
         :country="currentCountry"
         :memories="memories"
-        :showLine="newMemory.showLine"
+        :dateSelector="newMemory.showLine"
         :overlay="overlay"
         :active="displayMemory.memory"
         @showForm="toggleForm($event)"
@@ -29,29 +29,27 @@
 
         />
     </div>
-    <v-container fluid>
-      <v-row>
-        <v-col md="3" xs="12">
-          <div class="introWrapper">
-            <h1>Corona Memories</h1>
-            <p>It did not happen over night, but everything is different now. What are your memories, experiences and feelings after living in a pandemic for <counter /> days?</p>
-          </div>
-          <v-select
-            v-if="countries"
-            :items="countries"
-            v-model="currentCountry"
-            label="Your country"
-            >
-          </v-select>
-          <v-btn
-            color="primary"
-            elevation="2"
-            outlined
-            @click="showLine(true)"
-            >I have a memory</v-btn>
-        </v-col>
-      </v-row>
-    </v-container>
+
+    <div class="introWrapper">
+      <h1>corona diaries</h1>
+      <p>It did not happen over night, but everything is different now. What are your memories, experiences and feelings after living in a pandemic for <counter /> days?</p>
+      <v-select
+        v-if="countries"
+        :items="countries"
+        v-model="currentCountry"
+        label="Your country"
+
+        outlined
+        >
+      </v-select>
+      <v-btn
+        color="primary"
+
+        outlined
+        block
+        @click="showLine(true)"
+        >I have a memory</v-btn>
+    </div>
   </v-app>
 </template>
 
@@ -80,7 +78,7 @@ export default {
   data () {
     return {
       mounted: false,
-      dimensions: {width: 0, height: 0, top: 50, right: 100, bottom: 50, left: 50},
+      dimensions: {width: 0, height: 0, top: 20, right: 50, bottom: 50, left: 50},
       countries: null,
       currentCountry: "Germany",
       overlay: false,
@@ -100,7 +98,7 @@ export default {
 
   asyncComputed: {
     async cases() {
-      return (await caseService.getCases({country: this.currentCountry})).data
+      return (await caseService.getCases({country: this.currentCountry, metric: "absolute_deaths"})).data
     },
     async memories() {
       return (await memoryService.getMemories({country: this.currentCountry})).data
@@ -123,6 +121,7 @@ export default {
     resize: function() {
       this.dimensions.width = window.innerWidth
       this.dimensions.height = window.innerHeight
+      //this.dimensions.left = window.innerWidth / 4
     },
 
     showMemory: function(memory) {
@@ -136,8 +135,8 @@ export default {
         Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false)
         this.overlay = false
       }
-      
-      
+
+
     },
 
     showLine: function(show) {
@@ -160,9 +159,27 @@ export default {
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&display=swap');
+
 .introWrapper {
-  font-family: 'Roboto Serif';
+  overflow:visible;
+  background: linear-gradient(90deg, rgba(255, 235, 198, .05) 0%, rgba(255, 235, 198, 1) 90%, rgba(255, 255, 255, 0) 100%);
+  padding: 0 100px 50px 20px;
+  font-family: 'Roboto Sans';
+  width: 33%;
+
 }
+
+.introWrapper p {
+  min-width: 200px;
+  max-width: 500px;}
+
+h1{
+  font-family: 'Shippori Mincho B1', serif;
+  font-size: 40px;
+  color: #FA5E2D;
+}
+
 
 .visWrapper {
   position: fixed;
@@ -170,7 +187,9 @@ export default {
   height: 100%;
 }
 
+
 #app {
+  background: #FFEBC6;
   min-height: 100%;
   height: 100%
 }
