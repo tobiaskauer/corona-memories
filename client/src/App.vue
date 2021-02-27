@@ -119,7 +119,6 @@ export default {
     resize: function() {
       this.dimensions.width = window.innerWidth
       this.dimensions.height = window.innerHeight
-      //this.dimensions.left = window.innerWidth / 4
     },
 
     showMemory: function(memory) {
@@ -133,8 +132,6 @@ export default {
         Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false)
         this.overlay = false
       }
-
-
     },
 
     showLine: function(show) {

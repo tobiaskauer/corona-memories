@@ -149,13 +149,14 @@ export default {
     },
 
     lineMemories: function() {
-      if(!this.memories && !this.scales && this.caseLine) return null
+      if(!this.memories && !this.scales) {console.log(this.memories,this.scales); return null} 
       let arr = this.memories
-      if(arr && arr.length > 0) {
+      if(arr.length > 0) {
         arr = arr.filter(memory => memory.date != memory.enddate)
-        arr.forEach(memory=> {
+        arr.forEach((memory,i)=> {
           let segment = this.getLineSegment(memory.date,memory.enddate)
           if(segment.length > 0) segment.forEach(s => s.y = s.y - 5) 
+          if(i==1)console.log(segment,this.lineGenerator(segment))
           memory.path = this.lineGenerator(segment)
         })
       }
@@ -186,7 +187,6 @@ export default {
         c.y = this.scales.y(c.value)
         return c;
       })
-
     return this.lineGenerator(arr)
   },
 },
@@ -234,13 +234,10 @@ watch: {
       
       startDate = (typeof startDate === 'string') ? this.parseDate(startDate) : startDate
       endDate = (typeof endDate === 'string') ? this.parseDate(endDate) : endDate
-    
       let segment = this.parsedCases.filter(c => //get parts of the caseLine that match current dates
             (c.date < endDate && c.date > startDate) //forward movement
             || (c.date > endDate && c.date < startDate) //backward movement
           )
-
-
       return segment
     },
 
