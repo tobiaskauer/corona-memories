@@ -16,7 +16,7 @@ module.exports = {
   async getMemories (req, res) {
     try {
       const memories = await Memory.findAll({
-        attributes: ['date', 'comment', 'weight', 'id'],
+        attributes: ['date', 'enddate', 'comment', 'weight', 'id'],
         where: {
           country: req.body.country
         },

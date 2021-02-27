@@ -19,4 +19,7 @@ module.exports = (sequelize, DataTypes) =>
     date: {
       type: DataTypes.DATEONLY,
     },
+    enddate: {
+      type: DataTypes.DATEONLY,
+    },
   })

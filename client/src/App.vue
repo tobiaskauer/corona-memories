@@ -38,13 +38,11 @@
         :items="countries"
         v-model="currentCountry"
         label="Your country"
-
         outlined
         >
       </v-select>
       <v-btn
         color="primary"
-
         outlined
         block
         @click="showLine(true)"
@@ -98,7 +96,7 @@ export default {
 
   asyncComputed: {
     async cases() {
-      return (await caseService.getCases({country: this.currentCountry, metric: "absolute_deaths"})).data
+      return (await caseService.getCases({country: this.currentCountry, metric: "relative_cases"})).data
     },
     async memories() {
       return (await memoryService.getMemories({country: this.currentCountry})).data

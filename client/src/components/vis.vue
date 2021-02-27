@@ -23,6 +23,7 @@
           :r="memory.weight"
           fill="#FA5E2D"
           :filter="(overlay) ? 'url(#blurMe)' : ''"
+
           @click="$emit('showMemory',memory)"
           @mouseover="hover(memory,$event)"
           @mouseout="hover(memory,$event)" />
@@ -35,13 +36,23 @@
           @mouseover="hover(memory,$event)"
           @mouseout="hover(memory,$event)">{{memory.comment}}
           </text>-->
-        </g>
+      </g> <!-- circleMemories </g>-->
+
+      <g v-for="(memory, k) in lineMemories" :key="'line-'+k" >
+        <path v-if="memory.path" :d="memory.path" stroke="#FA5E2D" fill="none" />
+      </g>
     </g>
 
-    <g class="dateSelector" @click="$emit('showForm', formatDate(newMemory.date))" v-if="dateSelector" :transform="`translate(${newMemory.x},${newMemory.y})`">
-      <circle r="25" cx="0" cy="0" fill="#FA5E2D"  />
+        
+
+  
+
+    <!--<g class="dateSelector" @click="$emit('showForm', formatDate(newMemory.date))" v-if="dateSelector">-->
+    <g class="dateSelector" v-if="dateSelector">
+      <circle r="25" cx="0" cy="0" fill="#FA5E2D"  :transform="`translate(${newMemory.circle.x},${newMemory.circle.y})`" />
       <!--<path d="M6 0H9V6H15V9H9V15H6V9H0V6H6V0Z" fill="white" transform="translate(-7,-15)" />-->
-      <text v-if="newMemory.date" fill="white" font-size="10px" x="0" y="4" text-anchor="middle">{{shortFormatDate(newMemory.date)}}</text>
+      <text v-if="newMemory.date" fill="white" font-size="10px"  :transform="`translate(${newMemory.circle.x},${newMemory.circle.y})`" text-anchor="middle">{{shortFormatDate(newMemory.startDate)}}</text>
+      <path v-if="newMemory.line" :d="newMemory.line" stroke="#FA5E2D" fill="none" stroke-width="8" />
     </g>
 
     <g class="overlay" v-if="overlay">
@@ -54,13 +65,6 @@
           :cy="currentMemory.y"
           fill="#FA5E2D" />
 
-        <!--<line
-          :x1="currentMemory.x"
-          :y1="currentMemory.y"
-          :x2="(dimensions.width/2)"
-          :y2="(dimensions.height/2)"
-          stroke-width="2"
-          stroke="#FA5E2D"/>-->
         <path
           :d="currentMemory.connector"
           stroke-width="2"
@@ -83,18 +87,20 @@ export default {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
       shortFormatDate: d3.timeFormat("%b %d"),
+      lineGenerator: d3.line().curve(d3.curveBasis).x(d => d.x).y(d => d.y),
       mounted: false,
+      mouseDown: false,
       opacity: 0.7, //circle opacity when not hovered
       forceDistance: 5, //distance of reactions to line
       linePosition: [0,0], //x and y of line overlay to add new memories
       currentMemory: null, //when currently displaying a memory, pick the right one to highlight
       newMemory: {
-        date: null,
+        startDate: null,
+        endDate: null,
         show: false,
-        x: 0,
-        y: 0,
+        circle: {x: 0, y: 0},
+        line: false,
       },
-      //time: 1,
     }
   },
 
@@ -118,7 +124,6 @@ export default {
       })
     },
 
-
     scales: function() {
       if(!this.parsedCases) return null
 
@@ -130,71 +135,59 @@ export default {
       return {x: x, y: y}
     },
 
-    computedMemories: function() {
+    circleMemories: function() {
       if(!this.memories && !this.scales) return null
       let arr = this.memories
       if(arr && arr.length > 0) {
+        arr = arr.filter(memory => memory.date == memory.enddate)
         arr.forEach(memory=> {
           memory.y = this.scales.y(this.getYforDate(memory.date))
           memory.x = this.scales.x(this.parseDate(memory.date))
         })
       }
-      //if(this.dateSelector) { arr[this.memories.length] = this.newMemory
-
       return arr
     },
 
-    /*xyMapping: function() { //mapping Dates (string) to y-positions to more easily compute linePosition and beeswarm start positions
-      if(!this.scales) return null
-      let obj = {}
-      this.parsedCases.forEach(c => {
-        obj[c.dateString] = {
-          x: this.scales.x(c.date)
-          y: this.scales.y(c[this.metric])
-        }
-      })
+    lineMemories: function() {
+      if(!this.memories && !this.scales && this.caseLine) return null
+      let arr = this.memories
+      if(arr && arr.length > 0) {
+        arr = arr.filter(memory => memory.date != memory.enddate)
+        arr.forEach(memory=> {
+          let segment = this.getLineSegment(memory.date,memory.enddate)
+          if(segment.length > 0) segment.forEach(s => s.y = s.y - 5) 
+          memory.path = this.lineGenerator(segment)
+        })
+      }
+      return arr
+    },
 
-      return obj
-    },*/
 
     beeswarm: function(){
-      if(!this.computedMemories) return null
+      if(!this.circleMemories) return null
 
-      let force = d3.forceSimulation(this.computedMemories)
-       .force('forceX', d3.forceX((memory,i) => memory.x + (-this.forceDistance + (i%2)*(this.forceDistance * 2)) ).strength(.1))
-       .force('forceY', d3.forceY((memory,i) => memory.y + (-this.forceDistance + (i%2)*(this.forceDistance * 2))).strength(.1))
+      let force = d3.forceSimulation(this.circleMemories)
+       .force('forceX', d3.forceX(memory => memory.x).strength(.1))
+       //.force('forceX', d3.forceX((memory,i) => memory.x + (-this.forceDistance + (i%2)*(this.forceDistance * 2)) ).strength(.1))
+       //.force('forceY', d3.forceY((memory,i) => memory.y + (-this.forceDistance + (i%2)*(this.forceDistance * 2))).strength(.1))
+       .force('forceY', d3.forceY(memory => memory.y+10).strength(.1))
        .force('collide', d3.forceCollide(d => d.weight))
      for (let i = 0; i < 10; ++i) {
        force.tick()
      }
-
      return force.nodes()
    },
-
-  /* gridLines: function() {
-     if(!this.scales) return false
-     let arr = []
-     for (let i = this.scales.y.domain()[0]; i<= this.scales.y.domain()[1]; i++) { //go from the bottom of your y-axis to the top
-       if(i%50 == 0 && i != 0) { //find every valuable thats divisible by 50
-         arr.push({ //change it's position in the gridLine array (for dynamic change)
-           value: i,
-           y: this.scales.y(i)
-         })
-       }
-     }
-     return arr
-   },*/
-
 
     caseLine: function() {
       if(!this.scales) return false
 
-      const lineGenerator = d3.line()
-        .curve(d3.curveBasis)
-        .x(d => this.scales.x(d.date))
-        .y(d => this.scales.y(d.value))
+      let arr = this.parsedCases.map(c => {
+        c.x = this.scales.x(c.date)
+        c.y = this.scales.y(c.value)
+        return c;
+      })
 
-    return lineGenerator(this.parsedCases)
+    return this.lineGenerator(arr)
   },
 },
 
@@ -215,15 +208,8 @@ watch: {
   async mounted() {
     this.mounted = true;
     document.addEventListener('mousemove', this.onMouseMove)
-
-    /*let obj = {}
-    d3.csv('worldbank-population.csv')
-    .then((csv) => {
-      csv.forEach(data => {
-        obj[data.Country] = {Code: data.Code, Population: data.Population}
-      })
-      console.log(obj)
-    })*/
+    document.addEventListener('mousedown', this.onMouseDown)
+    document.addEventListener('mouseup', this.onMouseUp)
   },
 
   methods: {
@@ -244,31 +230,55 @@ watch: {
       return valueOnMemoryDate ? valueOnMemoryDate.value : 0
     },
 
+    getLineSegment: function(startDate,endDate) {
+      
+      startDate = (typeof startDate === 'string') ? this.parseDate(startDate) : startDate
+      endDate = (typeof endDate === 'string') ? this.parseDate(endDate) : endDate
+    
+      let segment = this.parsedCases.filter(c => //get parts of the caseLine that match current dates
+            (c.date < endDate && c.date > startDate) //forward movement
+            || (c.date > endDate && c.date < startDate) //backward movement
+          )
+
+
+      return segment
+    },
+
     
 
     onMouseMove: function(event) { //follow line
       if(this.dateSelector) {
-        let exactDate = this.scales.x.invert(event.clientX)
-        let dateString = this.formatDate(exactDate)
+        let endDate = this.scales.x.invert(event.clientX)
+        let dateString = this.formatDate(endDate)
+        let value = this.scales.y(this.getYforDate(dateString))
 
-        //let value = this.parsedCases.find(c => c.dateString == dateString).value
-        
-        Vue.set(this.newMemory,'date',exactDate)
-        Vue.set(this.newMemory,'x',event.clientX)
-        Vue.set(this.newMemory,'y',this.scales.y(this.getYforDate(dateString)))
-
-        //let hoveredDay = this.formatDate(this.newMemoryDate)
-        //let casesOnHoveredDay = this.parsedCases.find(c => c.dateString == hoveredDay).value
-        //let y = this.scales.y(casesOnHoveredDay)
-        //this.linePosition = [event.clientX,y]
-
-        /*Vue.set(
-          this.computedMemories.array[this.computedMemories.length-1],
-          'date',
-          this.formatDate(this.newMemoryDate))
-        console.log(this.computedMemories.arr[this.computedMemories.length-1].date)*/
+        if(this.mouseDown) { //if mouse if pressed
+          let arr = this.getLineSegment(this.newMemory.startDate,endDate)
+          Vue.set(this.newMemory,'line', this.lineGenerator(arr)) //create svg Line
+        }
+        Vue.set(this.newMemory.circle,'x',event.clientX) //also move circle
+        Vue.set(this.newMemory.circle,'y',value)
       }
     },
+
+    onMouseDown: function(event) { //follow line
+      if(this.dateSelector) {
+        this.mouseDown = true
+        let exactDate = this.scales.x.invert(event.clientX)
+        Vue.set(this.newMemory,'startDate',exactDate)
+      }
+    },
+
+    onMouseUp: function(event) { //follow line
+      if(this.dateSelector) {
+        this.mouseDown = false
+        let exactDate = this.scales.x.invert(event.clientX)
+        exactDate
+        
+      }
+    },
+
+
   },
 
   directives: { //axis computation
