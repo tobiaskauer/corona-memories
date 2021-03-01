@@ -1,7 +1,6 @@
-const express = require('express')
 const axios = require('axios');
 const {sequelize} = require('./models')
-//const app = express()
+
 
 
 let changeNames = {
@@ -21,35 +20,54 @@ let changeNames = {
   "recovered": "absolute_recovered",
 }
 
+let api = true //false will run from local backup without hogging api resources
 
-let populations = require('./temp/worldbank-population.json')
-let provinces = require('./temp/countries.json') //no need do ann oy the api
-let countries = combine(provinces)
-//console.log(showMissingCountries(countries)) //maybe add that for later
-countries = computeNewAndRelative(countries)
-let all = createArr(countries)
-//all = all.filter((d,i) => i<10000) //to test without performance issues
-writeToSQL(all)
-
-/*axios.get("https://disease.sh/v3/covid-19/historical?lastdays=all")
-.then(response => {
-  let countries = combine(response.data)
-  countries = computeNewAndRelative(countries)
-  let all = createArr(countries)
-  console.log(all)
-})
-.catch(error => {
-  console.log(error)
-});*/
+if(api) {
+  axios.get("https://disease.sh/v3/covid-19/historical?lastdays=all")
+  .then(response => {
+    let populations = require('./temp/worldbank-population.json')
+    let countries = combine(response.data)
+    countries = computeNewAndRelative(countries,populations)
+    let all = createArr(countries,populations)
+    writeToSQL(all)
+  })
+  .catch(error => {
+    console.log(error)
+  });
+} else {
+  let populations = require('./temp/worldbank-population.json')
+  let provinces = require('./temp/countries.json')
+  let countries = combine(provinces)
+  //console.log(showMissingCountries(countries)) //maybe add that for later
+  countries = computeNewAndRelative(countries,populations)
+  let all = createArr(countries,populations)
+  //all = all.filter((d,i) => i<10000) //to test without performance issues
+  writeToSQL(all)
+}
 
 
 function writeToSQL(data) {
+  sequelize.models.Case.count() //count current rows in db
+  .then((c) => {
+
+    if(c < data.length) { //if new scrape result has more
+      sequelize.models.Case.destroy({ truncate : true, cascade: false }) //truncate old table
+      sequelize.models.Case.bulkCreate(data) 
+        .then(() => {
+          console.log(`deleted ${c} cases, wrote ${data.length} new ones`)
+        }) //write new table
+      
+    } else {
+      console.log(`did not touch ${c} cases, because we only had ${data.length} new ones`)
+    }
+  })
+
   /*data = [  //demo data for testing
     { date: new Date(), 'absolute-cases': 100, country: "bums" },
     { date: new Date(), 'relative-cases': 2020, country: "bums" },
     { date: new Date(), 'new-deaths': 1947, country: "bums" },
   ]*/
-  sequelize.models.Case.bulkCreate(data)
+ // sequelize.models.Case.bulkCreate(data)
   /*.then(() => { // Notice: There are no arguments here, as of right now you'll have to...
   return sequelize.models.Case.findAll({
     where: {
@@ -121,7 +139,7 @@ function combine(provinces) {
   return obj
 }
  
-function computeNewAndRelative(countries) { //compute new cases for each day
+function computeNewAndRelative(countries, populations) { //compute new cases for each day
   Object.keys(countries).forEach(country => { //for every country
     let countryPop = !populations[country] ? 0 : populations[country].Population
     Object.keys(countries[country].timeline).forEach(metric => { //for every metric ("e.g. cases, deaths")
@@ -146,8 +164,6 @@ function computeNewAndRelative(countries) { //compute new cases for each day
           }
           goXDaysBack-- //and count back one day less
         }
-        
-
         let relativeMetric = "relative_"+metric; //name for new timeline 
         if (!countries[country].timeline[relativeMetric]) countries[country].timeline[relativeMetric] = {} //if first value, create timeline object
         countries[country].timeline[relativeMetric][date] =  Math.floor(sevenDaySum / countryPop * 100000)
@@ -157,43 +173,7 @@ function computeNewAndRelative(countries) { //compute new cases for each day
   return countries
 }
 
-function computeRelative(countries) { //compute new cases for each day
-  Object.keys(countries).forEach(country => { //for every country
-    let countryPop = !populations[country] ? 0 : populations[country].Population
-    Object.keys(countries[country].timeline).forEach(metric => { //for every metric ("e.g. cases, deaths")
-      let metricArr = Object.entries(countries[country].timeline[metric]) //create array so we can do i-1 for yesterdays value
-      Object.keys(countries[country].timeline[metric]).forEach((date,i) => { //go through all dates in timeline
-        
-        //compute new Cases
-        let today = countries[country].timeline[metric][date] //get todays value
-        let yesterday = (i>0) ? metricArr[i-1][1] : 0 //get yesterdays value
-        let newMetric = "new_"+metric; //name for new timeline 
-        if (!countries[country].timeline[newMetric]) countries[country].timeline[newMetric] = {} //if first value, create timeline object
-        countries[country].timeline[newMetric][date] = today - yesterday //add value to timeline
-
-        //compute sum of Cases in last seven days relative to population
-        let sevenDaySum = 0 //sum before we start counting
-        let goXDaysBack = 7 //number of days to go back
-        while (goXDaysBack > 0) { //while there are still days left to count
-          if(i >= goXDaysBack) { //and we are not at the beginning of time
-            sevenDaySum = sevenDaySum + metricArr[i-goXDaysBack][1] //add value to sum
-            if(country == "Germany") console.log(metricArr[i-goXDaysBack][1])
-          }
-          goXDaysBack-- //and count back one day less
-        }
-        
-
-        let relativeMetric = "relative_"+metric; //name for new timeline 
-        if (!countries[country].timeline[relativeMetric]) countries[country].timeline[relativeMetric] = {} //if first value, create timeline object
-        divider = (metric == "deaths") ? 100 : 100000 // untested
-        countries[country].timeline[relativeMetric][date] =  Math.floor(sevenDaySum / countryPop * divider)
-      })
-    })
-  })
-  return countries
-}
-
-function createArr (countries) {
+function createArr (countries,populations) {
   let arr = []
   Object.keys(countries).forEach(country => { //for every country
     let countryPop = !populations[country] ? 0 : populations[country].Population

@@ -14,32 +14,34 @@
       fill="none"
       stroke="black"/>
 
-    <g class="memories" v-if="beeswarm" transform="translate(0,0)">
-      <g v-for="memory, j in beeswarm" :key="j">
-        <circle
-          :cx="memory.x"
-          :cy="memory.y"
-          :opacity="opacity"
-          :r="memory.weight"
-          fill="#FA5E2D"
-          :filter="(overlay) ? 'url(#blurMe)' : ''"
+    <g class="memories" v-if="false" transform="translate(0,0)">
+      <g if="beeswarm">
+        <g v-for="memory, j in beeswarm" :key="j">
+          <circle
+            :cx="memory.x"
+            :cy="memory.y"
+            :opacity="opacity"
+            :r="memory.weight"
+            fill="#FA5E2D"
+            :filter="(overlay) ? 'url(#blurMe)' : ''"
 
-          @click="$emit('showMemory',memory)"
-          @mouseover="hover(memory,$event)"
-          @mouseout="hover(memory,$event)" />
+            @click="$emit('showMemory',memory)"
+            @mouseover="hover(memory,$event)"
+            @mouseout="hover(memory,$event)" />
 
-        <!--<text
-          :x="memory.x"
-          :y="memory.y"
-          fill="#FA5E2D"
-          @click="$emit('showMemory',memory)"
-          @mouseover="hover(memory,$event)"
-          @mouseout="hover(memory,$event)">{{memory.comment}}
-          </text>-->
-      </g> <!-- circleMemories </g>-->
+          <!--<text
+            :x="memory.x"
+            :y="memory.y"
+           fill="#FA5E2D"
+            @click="$emit('showMemory',memory)"
+            @mouseover="hover(memory,$event)"
+            @mouseout="hover(memory,$event)">{{memory.comment}}
+            </text>-->
+        </g> <!-- circleMemories </g>-->
+      </g>
 
       <g v-for="(memory, k) in lineMemories" :key="'line-'+k" >
-        <path v-if="memory.path" :d="memory.path" stroke="#FA5E2D" fill="none" />
+        <path v-if="memory.path" stroke-linecap="round" :opacity="opacity" stroke-dasharray="1 5" stroke-width="2" :d="memory.path" stroke="#FA5E2D" fill="none" />
       </g>
     </g>
 
@@ -52,7 +54,7 @@
       <circle r="25" cx="0" cy="0" fill="#FA5E2D"  :transform="`translate(${newMemory.circle.x},${newMemory.circle.y})`" />
       <!--<path d="M6 0H9V6H15V9H9V15H6V9H0V6H6V0Z" fill="white" transform="translate(-7,-15)" />-->
       <text v-if="newMemory.date" fill="white" font-size="10px"  :transform="`translate(${newMemory.circle.x},${newMemory.circle.y})`" text-anchor="middle">{{shortFormatDate(newMemory.startDate)}}</text>
-      <path v-if="newMemory.line" :d="newMemory.line" stroke="#FA5E2D" fill="none" stroke-width="8" />
+      <!--<path v-if="newMemory.line" :d="newMemory.line" stroke="#FA5E2D" fill="none" stroke-width="8" />-->
     </g>
 
     <g class="overlay" v-if="overlay">

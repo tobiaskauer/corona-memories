@@ -158,7 +158,8 @@ export default {
 
 .introWrapper {
   overflow:visible;
-  background: linear-gradient(90deg, rgba(255, 235, 198, .05) 0%, rgba(255, 235, 198, 1) 90%, rgba(255, 255, 255, 0) 100%);
+  
+  //background: linear-gradient(90deg, rgba(255, 235, 198, .05) 0%, rgba(255, 235, 198, 1) 90%, rgba(255, 255, 255, 0) 100%);
   padding: 0 100px 50px 20px;
   font-family: 'Roboto Sans';
   width: 33%;
@@ -184,7 +185,7 @@ h1{
 
 
 #app {
-  background: #FFEBC6;
+  //background: #FFEBC6;
   min-height: 100%;
   height: 100%
 }

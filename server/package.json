@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/app.js --exec  \"npm run lint && node\"",
-    "scrape": "nodemon src/scrape.js --exec  \"npm run lint && node\"",
+    "start": "node src/app.js",
+    "scrape": "node src/scrape.js",
+    "admin": "nodemon src/admin.js",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js  --fix",
     "seed": "node seed"
@@ -14,6 +15,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@admin-bro/express": "^3.1.0",
+    "@admin-bro/sequelize": "^1.2.1",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
