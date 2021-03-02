@@ -11,10 +11,11 @@
     <path
       :d="caseLine"
       stroke-width="3"
+      stroke-linecap="round" 
       fill="none"
       stroke="black"/>
 
-    <g class="memories" v-if="false" transform="translate(0,0)">
+    <g class="memories"  transform="translate(0,0)">
       <g if="beeswarm">
         <g v-for="memory, j in beeswarm" :key="j">
           <circle
@@ -40,9 +41,9 @@
         </g> <!-- circleMemories </g>-->
       </g>
 
-      <g v-for="(memory, k) in lineMemories" :key="'line-'+k" >
+      <!--<g v-for="(memory, k) in lineMemories" :key="'line-'+k" >
         <path v-if="memory.path" stroke-linecap="round" :opacity="opacity" stroke-dasharray="1 5" stroke-width="2" :d="memory.path" stroke="#FA5E2D" fill="none" />
-      </g>
+      </g>-->
     </g>
 
         
@@ -89,7 +90,7 @@ export default {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
       shortFormatDate: d3.timeFormat("%b %d"),
-      lineGenerator: d3.line().curve(d3.curveBasis).x(d => d.x).y(d => d.y),
+      lineGenerator: d3.line().x(d => d.x).y(d => d.y).curve(d3.curveBasis),
       mounted: false,
       mouseDown: false,
       opacity: 0.7, //circle opacity when not hovered
@@ -117,11 +118,12 @@ export default {
 
   computed: {
     parsedCases: function() {
-      return this.cases.map(c => {
+      return this.cases.map((c,i) => {
         return {
           dateString: c.d,
           date: this.parseDate(c.d),
-          value: c.v
+          value: c.v,
+          slope: (i>5) ? c.v - this.cases[i-6].v : 0 //helps computing the beeswarm's distance
         }
       })
     },
@@ -131,26 +133,46 @@ export default {
 
       let yDomain = [0,d3.max([50,d3.max(this.parsedCases, d=>d.value)])] //minimum of 50 cases to have a somewhat consistent layout
       let xDomain = d3.extent(this.parsedCases, d=>d.date)
+
       let x = d3.scaleTime().domain(xDomain).range([this.dimensions.left,this.dimensions.width-this.dimensions.right])
       let y = d3.scaleLinear().domain(yDomain).range([this.dimensions.height-this.dimensions.bottom-this.dimensions.top,this.dimensions.top])
+     
       
       return {x: x, y: y}
     },
 
+    caseLine: function() {
+      if(!this.scales) return false
+
+      let arr = this.parsedCases.map(c => { 
+        c.x = this.scales.x(c.date)
+        c.y = this.scales.y(c.value)
+        return c;
+      })
+    return this.lineGenerator(arr)
+  },
+
     circleMemories: function() {
       if(!this.memories && !this.scales) return null
       let arr = this.memories
+      let slopeDomain = d3.extent(this.parsedCases, d=>d.slope)
+
       if(arr && arr.length > 0) {
-        arr = arr.filter(memory => memory.date == memory.enddate)
-        arr.forEach(memory=> {
-          memory.y = this.scales.y(this.getYforDate(memory.date))
-          memory.x = this.scales.x(this.parseDate(memory.date))
+        //arr = arr.filter(memory => memory.date == memory.enddate) //only get memories that are only one day long
+        arr.forEach((memory,i)=> {
+          let slope = this.getLineElement(memory.date).slope
+          let maxSlope = slope >= 0 ? slopeDomain[1] : slopeDomain [0] //if slope is negative, use negativ max to compute distance
+          let sign = (i%2) ? -1 : 1 //split into a line above and one below
+          let changeY = sign * (Math.abs(maxSlope) -  Math.abs(slope)) * .15 //change on y axis decreases as slope gets higher
+          let changeX = sign * (maxSlope  - slope) * .15 //change on y axis decreases as slope gets higher
+          memory.y = this.scales.y(this.getLineElement(memory.date).value) + changeY
+          memory.x = this.scales.x(this.parseDate(memory.date)) + changeX
         })
       }
       return arr
     },
 
-    lineMemories: function() {
+    /*lineMemories: function() {
       if(!this.memories && !this.scales) {console.log(this.memories,this.scales); return null} 
       let arr = this.memories
       if(arr.length > 0) {
@@ -163,34 +185,23 @@ export default {
         })
       }
       return arr
-    },
+    },*/
 
 
     beeswarm: function(){
       if(!this.circleMemories) return null
 
       let force = d3.forceSimulation(this.circleMemories)
-       .force('forceX', d3.forceX(memory => memory.x).strength(.1))
-       //.force('forceX', d3.forceX((memory,i) => memory.x + (-this.forceDistance + (i%2)*(this.forceDistance * 2)) ).strength(.1))
-       //.force('forceY', d3.forceY((memory,i) => memory.y + (-this.forceDistance + (i%2)*(this.forceDistance * 2))).strength(.1))
-       .force('forceY', d3.forceY(memory => memory.y+10).strength(.1))
-       .force('collide', d3.forceCollide(d => d.weight))
-     for (let i = 0; i < 10; ++i) {
+        .force('forceX', d3.forceX(memory => memory.x).strength(.1))
+        .force('forceY', d3.forceY(memory => memory.y).strength(.1))
+        .force('collide', d3.forceCollide(d => d.weight +1))
+     for (let i = 0; i < 100; ++i) {
        force.tick()
      }
      return force.nodes()
    },
 
-    caseLine: function() {
-      if(!this.scales) return false
-
-      let arr = this.parsedCases.map(c => {
-        c.x = this.scales.x(c.date)
-        c.y = this.scales.y(c.value)
-        return c;
-      })
-    return this.lineGenerator(arr)
-  },
+    
 },
 
 watch: {
@@ -227,10 +238,13 @@ watch: {
       }
     },
 
-    getYforDate: function(dateString) {
+    getLineElement: function(dateString) {
       let valueOnMemoryDate = this.parsedCases.find(c => dateString == c.dateString)
-      return valueOnMemoryDate ? valueOnMemoryDate.value : 0
+      return valueOnMemoryDate ? valueOnMemoryDate : null
     },
+
+    
+
 
     getLineSegment: function(startDate,endDate) {
       
@@ -245,11 +259,13 @@ watch: {
 
     
 
+    
+
     onMouseMove: function(event) { //follow line
       if(this.dateSelector) {
         let endDate = this.scales.x.invert(event.clientX)
         let dateString = this.formatDate(endDate)
-        let value = this.scales.y(this.getYforDate(dateString))
+        let value = this.scales.y(this.getLineElement(dateString).value)
 
         if(this.mouseDown) { //if mouse if pressed
           let arr = this.getLineSegment(this.newMemory.startDate,endDate)
