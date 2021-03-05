@@ -6,6 +6,9 @@ module.exports = (sequelize, DataTypes) =>
       allowNull: false,
       primaryKey: true,
     },
+    author: {
+      type: DataTypes.STRING,
+    },
     comment: {
       type: DataTypes.STRING,
     },

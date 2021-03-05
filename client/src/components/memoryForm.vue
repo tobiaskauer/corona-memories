@@ -6,17 +6,11 @@
       opacity="0"
       light
       class="mx-auto my-12">
-      <!--<v-btn icon>
-        <v-icon>mdi-close-circle</v-icon>
-      </v-btn>-->
-      <template slot="progress">
-      <v-progress-linear
-        color="deep-purple"
-        height="10"
-        indeterminate
-      ></v-progress-linear>
-    </template>
-      <v-card-title>Share a memory</v-card-title>
+      
+        <div class="d-flex justify-end"><v-btn icon @click="close()"><v-icon center>mdi-close-circle</v-icon></v-btn></div>
+      
+
+      <v-card-title color="primary">Add your story to the curve</v-card-title>
       <v-card-text v-if="status">
         <v-alert
           border="left"
@@ -28,8 +22,12 @@
         <v-btn block color="primary" outlined @click="close()">Cool!</v-btn>
       </v-card-text>
       <v-card-text v-else>
-        <p>What did you lorem ipsum sed dolor sit amet?</p>
+       <!-- <p>What did you lorem ipsum sed dolor sit amet?</p>-->
         <v-form>
+          <v-text-field
+            v-model="name"
+            label="Name (optional)"
+          ></v-text-field>
           <v-text-field
             v-model="date"
             label="Date"
@@ -41,7 +39,6 @@
           ></v-textarea>
           <v-btn block color="primary" outlined @click="sendMemory">Send</v-btn>
         </v-form>
-        <div style="text-align: center; font-size:.8em; text-decoration:underline; cursor: pointer;" @click="close()">Cancel</div>
       </v-card-text>
     <!--<v-date-picker v-model="picker"></v-date-picker>-->
     </v-card>
@@ -56,6 +53,7 @@ export default {
       memory: 'abc123',
       status: false,
       loading: false,
+      name: '',
     }
   },
 
@@ -71,12 +69,13 @@ export default {
       let payload = {
         comment: this.memory,
         date: new Date(this.date),
+        name: this.name,
         country: this.country,
         id: null,
       }      
       try {
         const response = await MemoryService.sendMemory(payload)
-        console.log(response)
+        
         if(response) this.loading=false
         if(response.status == 200) {
           this.status = "Your memory has been recorded"

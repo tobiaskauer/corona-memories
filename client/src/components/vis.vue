@@ -1,12 +1,12 @@
 <template>
-  <svg :width="dimensions.width" :height="dimensions.height" v-if="mounted" z-index="5">
+  <svg :width="options.dimensions.width" :height="options.dimensions.height" v-if="mounted" z-index="5">
     
     <filter id="blurMe">
       <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
     </filter>
     
-    <g class="axis xAxis" v-axis:x="scales" :transform="`translate(0,${dimensions.height-dimensions.top-dimensions.bottom+10})`"></g>
-    <g class="axis yAxis" v-axis:y="scales" :transform="`translate(${dimensions.width-dimensions.right})`"></g>
+    <g class="axis xAxis" v-axis:x="scales" :transform="`translate(0,${options.dimensions.height-options.dimensions.top-options.dimensions.bottom+10})`"></g>
+    <g class="axis yAxis" v-axis:y="scales" :transform="`translate(${options.dimensions.width-options.dimensions.right})`"></g>
 
     <path
       :d="caseLine"
@@ -15,16 +15,16 @@
       fill="none"
       stroke="black"/>
 
-    <g class="memories"  transform="translate(0,0)">
-      <g if="beeswarm">
-        <g v-for="memory, j in beeswarm" :key="j">
+    <g class="memories"  transform="translate(0,0)"> <!-- can go to component, actually.... -->
+      <g v-if="beeswarm">
+        <g v-for="memory, j in beeswarm.filter((e,i) => i < options.progress)" :key="j">
           <circle
             :cx="memory.x"
             :cy="memory.y"
             :opacity="opacity"
-            :r="memory.weight"
+            :r="memory.radius"
             fill="#FA5E2D"
-            :filter="(overlay) ? 'url(#blurMe)' : ''"
+            :filter="(options.overlay) ? 'url(#blurMe)' : ''"
 
             @click="$emit('showMemory',memory)"
             @mouseover="hover(memory,$event)"
@@ -51,15 +51,17 @@
   
 
     <!--<g class="dateSelector" @click="$emit('showForm', formatDate(newMemory.date))" v-if="dateSelector">-->
-    <g class="dateSelector" v-if="dateSelector">
-      <circle r="25" cx="0" cy="0" fill="#FA5E2D"  :transform="`translate(${newMemory.circle.x},${newMemory.circle.y})`" />
-      <!--<path d="M6 0H9V6H15V9H9V15H6V9H0V6H6V0Z" fill="white" transform="translate(-7,-15)" />-->
-      <text v-if="newMemory.date" fill="white" font-size="10px"  :transform="`translate(${newMemory.circle.x},${newMemory.circle.y})`" text-anchor="middle">{{shortFormatDate(newMemory.startDate)}}</text>
-      <!--<path v-if="newMemory.line" :d="newMemory.line" stroke="#FA5E2D" fill="none" stroke-width="8" />-->
+    <g class="datePicker"
+     v-if="datePicker"
+     :transform="`translate(${newMemory.position.x},0)`"> <!-- can go to own component -->
+      <line y1="0" :y2="options.dimensions.height" x1="0" x2="0" stroke="#FA5E2D" stroke-dasharray="1,4"/>
+      <circle r="40" cx="0" :cy="newMemory.position.y" fill="#FA5E2D" @click="$emit('toggleForm', formatDate(newMemory.date))"  />
+      <text x="0" text-anchor="middle" :y="(newMemory.position.y - 5)">Click to add</text>
+      <text x="0" class="strong" text-anchor="middle" :y="(newMemory.position.y + 5)">{{formatPretty(newMemory.date)}}</text>
     </g>
 
-    <g class="overlay" v-if="overlay">
-      <rect x="0" y="0" :width="dimensions.width" :height="dimensions.height" fill="black" opacity=".5" pointer-events="none"/>
+    <g class="overlay" v-if="options.overlay">
+      <rect x="0" y="0" :width="options.dimensions.width" :height="options.dimensions.height" fill="black" opacity=".5" pointer-events="none"/>
       <g v-if="currentMemory">
 
         <circle
@@ -81,7 +83,6 @@
 
 <script>
 import Vue from 'vue'
-
 import * as d3 from 'd3'
 
 export default {
@@ -89,30 +90,27 @@ export default {
     return {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
-      shortFormatDate: d3.timeFormat("%b %d"),
+      formatPretty: d3.timeFormat("%b %d %Y"),
       lineGenerator: d3.line().x(d => d.x).y(d => d.y).curve(d3.curveBasis),
       mounted: false,
-      mouseDown: false,
       opacity: 0.7, //circle opacity when not hovered
-      forceDistance: 5, //distance of reactions to line
-      linePosition: [0,0], //x and y of line overlay to add new memories
+      forceDistance: 10, //distance of reactions to line
       currentMemory: null, //when currently displaying a memory, pick the right one to highlight
       newMemory: {
-        startDate: null,
-        endDate: null,
+        date: null,
         show: false,
-        circle: {x: 0, y: 0},
-        line: false,
+        position: {x: -100, y: -100}, //start out of sight
       },
     }
   },
 
   props: {
-    dimensions: Object,
+    options: Object,
+    //dimensions: Object,
     cases: Array,
     memories: Array,
-    dateSelector: Boolean,
-    overlay: Boolean,
+    datePicker: Boolean,
+    //overlay: Boolean,
 
   },
 
@@ -129,16 +127,17 @@ export default {
     },
 
     scales: function() {
-      if(!this.parsedCases) return null
+      if(!this.parsedCases && this.memories) return null
 
       let yDomain = [0,d3.max([50,d3.max(this.parsedCases, d=>d.value)])] //minimum of 50 cases to have a somewhat consistent layout
       let xDomain = d3.extent(this.parsedCases, d=>d.date)
+      let radiusDomain = d3.extent(this.memories, d=>d.weight)
 
-      let x = d3.scaleTime().domain(xDomain).range([this.dimensions.left,this.dimensions.width-this.dimensions.right])
-      let y = d3.scaleLinear().domain(yDomain).range([this.dimensions.height-this.dimensions.bottom-this.dimensions.top,this.dimensions.top])
-     
+      let x = d3.scaleTime().domain(xDomain).range([this.options.dimensions.left,this.options.dimensions.width-this.options.dimensions.right])
+      let y = d3.scaleLinear().domain(yDomain).range([this.options.dimensions.height-this.options.dimensions.bottom-this.options.dimensions.top,this.options.dimensions.top])
+      let radius = d3.scaleLinear().domain(radiusDomain).range([3,4])
       
-      return {x: x, y: y}
+      return {x: x, y: y, radius: radius}
     },
 
     caseLine: function() {
@@ -157,16 +156,18 @@ export default {
       let arr = this.memories
       let slopeDomain = d3.extent(this.parsedCases, d=>d.slope)
 
-      if(arr && arr.length > 0) {
+      if(arr && arr.length > 0) { //compute x/y coordinates for all memories (before turning them into a beeswarm)
         //arr = arr.filter(memory => memory.date == memory.enddate) //only get memories that are only one day long
         arr.forEach((memory,i)=> {
+          
           let slope = this.getLineElement(memory.date).slope
           let maxSlope = slope >= 0 ? slopeDomain[1] : slopeDomain [0] //if slope is negative, use negativ max to compute distance
           let sign = (i%2) ? -1 : 1 //split into a line above and one below
-          let changeY = sign * (Math.abs(maxSlope) -  Math.abs(slope)) * .15 //change on y axis decreases as slope gets higher
-          let changeX = sign * (maxSlope  - slope) * .15 //change on y axis decreases as slope gets higher
+          let changeY = sign * (Math.abs(maxSlope) -  Math.abs(slope)) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
+          let changeX = sign * (maxSlope  - slope) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
           memory.y = this.scales.y(this.getLineElement(memory.date).value) + changeY
           memory.x = this.scales.x(this.parseDate(memory.date)) + changeX
+          memory.radius = this.scales.radius(memory.weight)
         })
       }
       return arr
@@ -188,20 +189,18 @@ export default {
     },*/
 
 
-    beeswarm: function(){
-      if(!this.circleMemories) return null
-
-      let force = d3.forceSimulation(this.circleMemories)
-        .force('forceX', d3.forceX(memory => memory.x).strength(.1))
-        .force('forceY', d3.forceY(memory => memory.y).strength(.1))
-        .force('collide', d3.forceCollide(d => d.weight +1))
-     for (let i = 0; i < 100; ++i) {
-       force.tick()
-     }
-     return force.nodes()
-   },
-
     
+  beeswarm: function(){
+    if(!this.circleMemories) return null
+    let force = d3.forceSimulation(this.circleMemories)
+      .force('forceX', d3.forceX(memory => memory.x).strength(.1))
+      .force('forceY', d3.forceY(memory => memory.y).strength(.1))
+      .force('collide', d3.forceCollide(d => d.radius + .5))
+    for (let i = 0; i < 100; ++i) {
+      force.tick()
+    }
+    return force.nodes()
+  },
 },
 
 watch: {
@@ -211,23 +210,22 @@ watch: {
       this.currentMemory = c
        this.currentMemory.connector = `
         M${c.x} ${c.y}
-        Q${(this.dimensions.width/2)} ${c.y}
-        ${(this.dimensions.width/2)} ${(this.dimensions.height/2)}`;
+        Q${(this.options.dimensions.width/2)} ${c.y}
+        ${(this.options.dimensions.width/2)} ${(this.options.dimensions.height/2)}`;
     }
   }
 },
 
-
   async mounted() {
     this.mounted = true;
     document.addEventListener('mousemove', this.onMouseMove)
-    document.addEventListener('mousedown', this.onMouseDown)
-    document.addEventListener('mouseup', this.onMouseUp)
+    /*document.addEventListener('mousedown', this.onMouseDown)
+    document.addEventListener('mouseup', this.onMouseUp)*/
   },
 
   methods: {
     hover: function(memory,event) { //hovering circles
-      if(!this.dateSelector) {  //disable hover when memory adding is in progress
+      if(!this.datePicker) {  //disable hover when memory adding is in progress
         let r = 10
         let opacity = 1
         if(event.type == 'mouseout') {
@@ -243,11 +241,7 @@ watch: {
       return valueOnMemoryDate ? valueOnMemoryDate : null
     },
 
-    
-
-
     getLineSegment: function(startDate,endDate) {
-      
       startDate = (typeof startDate === 'string') ? this.parseDate(startDate) : startDate
       endDate = (typeof endDate === 'string') ? this.parseDate(endDate) : endDate
       let segment = this.parsedCases.filter(c => //get parts of the caseLine that match current dates
@@ -257,11 +251,19 @@ watch: {
       return segment
     },
 
-    
-
-    
-
     onMouseMove: function(event) { //follow line
+      if(this.datePicker) {
+        let date = this.scales.x.invert(event.clientX)
+        let dateString = this.formatDate(date)
+        let value = this.scales.y(this.getLineElement(dateString).value)
+        Vue.set(this.newMemory,'date',date) //also move circle
+        Vue.set(this.newMemory.position,'x',event.clientX) //also move circle
+        Vue.set(this.newMemory.position,'y',value)
+      }
+    },
+
+    //alternative interaction with dragging a line
+    /*onMouseMove: function(event) { //follow line
       if(this.dateSelector) {
         let endDate = this.scales.x.invert(event.clientX)
         let dateString = this.formatDate(endDate)
@@ -289,11 +291,8 @@ watch: {
         this.mouseDown = false
         let exactDate = this.scales.x.invert(event.clientX)
         exactDate
-        
       }
-    },
-
-
+    },*/
   },
 
   directives: { //axis computation
@@ -324,12 +323,22 @@ watch: {
           axis.selectAll(".tick text").attr("opacity",.3)
           break;
       }
-
     }
   }
 }
 </script>
 
 <style scoped>
+.datePicker {
+  cursor: pointer;
+}
 
+.datePicker text {
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.datePicker text.strong {
+  font-weight: bold;
+}
 </style>

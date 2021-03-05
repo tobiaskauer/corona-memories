@@ -1,4 +1,6 @@
+const { Sequelize } = require('sequelize');
 const {Memory} = require('../models')
+
 
 module.exports = {
   async sendMemory (req, res) {
@@ -14,14 +16,24 @@ module.exports = {
   },
 
   async getMemories (req, res) {
+    let attributes = ['date', 'author', 'enddate', 'comment', 'weight', 'id']
+    let options = null
+    if(req.body.country == "World") {
+      
+      options = {
+        attributes: attributes,
+        order: Sequelize.literal('random()'), limit: 500
+      }
+    } else {
+      options = {
+        attributes: attributes,
+        where: {country: req.body.country},
+        
+      }
+    }
+    
     try {
-      const memories = await Memory.findAll({
-        attributes: ['date', 'enddate', 'comment', 'weight', 'id'],
-        where: {
-          country: req.body.country
-        },
-
-      });
+      const memories = await Memory.findAll(options);
       res.send(memories)
     } catch (err) {
       console.log(err)

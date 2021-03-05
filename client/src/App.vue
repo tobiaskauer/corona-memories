@@ -1,64 +1,93 @@
 <template>
   <v-app>
-    <div class="formWrapper" v-if="newMemory.showForm">
-      <memoryForm
-        :date="newMemory.date"
-        :country="currentCountry"
-        @close="toggleForm(false)"
-        />
-    </div>
-    <div class="memoryWrapper" v-if="displayMemory.display">
-      <memoryDisplay
-        :memory="displayMemory.memory"
-        @close="showMemory(false)"
-      />
-    </div>
-    <div class="visWrapper">
-      <vis
-        v-if="cases"
-        :dimensions="dimensions"
+    <template v-if="cases && memories && countries && mounted">
+    <h1>corona<br /><span>memories</span></h1>
+    <Scrollama
+      class="scrollama"
+      :progress="true"
+      @step-enter="stepEnterHandler"
+      @step-progress="stepProgressHandler"
+    >
+      <div slot="graphic" class="visWrapper">
+        <vis
+          :cases="cases"
+          :memories="memories"
+          :options="visOptions"
+          :country="currentCountry"
+          :datePicker="newMemory.datepicker"
+          @toggleForm="toggleForm($event)"
+          @showMemory="showMemory" />
+      </div>
 
-        :cases="cases"
-        :country="currentCountry"
-        :memories="memories"
-        :dateSelector="newMemory.showLine"
-        :overlay="overlay"
-        :active="displayMemory.memory"
-        @showForm="toggleForm($event)"
-        @showMemory="showMemory"
+        <div class="introWrapper" data-step="1">  
+          <p class="larger"> Numbers do not tell stories. <strong>People do.</strong></p>
+          <p>Since the start of the pandemic <counter /> days ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You read the information letter and you voluntarily agree to  participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+            <v-btn color="primary" outlined @click="giveConsent">
+              <v-icon small>mdi-check-circle</v-icon>
+             I agree, show me
+            </v-btn>
+        </div>
 
-        />
-    </div>
+        <div class="animatorWrapper" data-step="2"></div>
 
-    <div class="introWrapper">
-      <h1>corona diaries</h1>
-      <p>It did not happen over night, but everything is different now. What are your memories, experiences and feelings after living in a pandemic for <counter /> days?</p>
-      <v-select
-        v-if="countries"
-        :items="countries"
-        v-model="currentCountry"
-        label="Your country"
-        outlined
-        >
-      </v-select>
-      <v-btn
+        <div v-if="consent" id="target" class="explorationWrapper" data-step="3">
+          <p><strong>What's the day the pandemic changed your life?</strong></p>
+          <v-btn color="primary" outlined elevation="2" @click="toggleDatepicker">
+            <template v-if="!newMemory.datepicker">
+              <v-icon small>mdi-tooltip-plus-outline</v-icon>Add a story to the curve
+            </template>
+            <template v-else>
+              <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
+            </template>
+          </v-btn>
+          <p v-if="newMemory.datepicker">click on the line to choose a date</p>
+          <hr style="color: #FA5E2D; margin: 20px 0; height: 1px;" />
+          <v-select
+            :items="countries"
+            v-model="currentCountry"
+            label="Your country"
+            outlined />
+        </div>
+
+      <div class="formWrapper" v-if="newMemory.showForm">
+        <memoryForm
+          :date="newMemory.date"
+          :country="currentCountry"
+          @close="toggleForm(false)"/>
+      </div>
+      <div class="memoryWrapper" v-if="displayMemory.display">
+        <memoryDisplay
+          :memory="displayMemory.memory"
+          @close="showMemory(false)"/>
+      </div>
+    </Scrollama>
+    </template>
+    <template v-else>
+      <v-card class="d-flex justify-center mb-6" color="rgb(255, 0, 0, 0.0)" elevation="0" style="margin-top: 100px;">
+        <v-progress-circular
+        :size="300"
+        indeterminate
         color="primary"
-        outlined
-        block
-        @click="showLine(true)"
-        >I have a memory</v-btn>
-    </div>
+        >Loading ...<br />try refresing?</v-progress-circular>
+      </v-card>
+      </template>
   </v-app>
 </template>
 
 <script>
+//get packages
 import Vue from 'vue'
 import AsyncComputed from 'vue-async-computed'
 Vue.use(AsyncComputed)
+import 'intersection-observer' // for cross-browser support
+import Scrollama from 'vue-scrollama'
 
+//get services for API connectivity
 import caseService from '@/services/caseService'
 import memoryService from '@/services/memoryService'
 
+//get components
 import memoryForm from './components/memoryForm'
 import memoryDisplay from './components/memoryDisplay'
 import counter from './components/counter'
@@ -67,6 +96,7 @@ import vis from './components/vis'
 export default {
   name: 'App',
   components: {
+    Scrollama,
     memoryForm,
     memoryDisplay,
     counter,
@@ -76,19 +106,24 @@ export default {
   data () {
     return {
       mounted: false,
-      dimensions: {width: 0, height: 0, top: 20, right: 50, bottom: 50, left: 50},
-      countries: null,
-      currentCountry: "Germany",
-      overlay: false,
+      consent: true, //only start recording after people consent
+      countries: null, 
+      currentCountry: "World",      
+
+      visOptions: {
+        dimensions: {width: 0, height: 0, top: 20, right: 50, bottom: 50, left: 50},
+        progess: 0,
+        overlay: false,
+        displayMemory: false
+      },
 
       displayMemory: {
         display: false,
-        current: null
       },
       newMemory: {
-        showLine: false,
-        showForm: false,
-        date: ""
+        datepicker: false, //show circle (formerly line) that adds new dot
+        showForm: false, //show form after clicking the dot
+        date: "" //is set when hovering line and passed to memory form
         //date: "2020-02-23" //to quicker test form
       }
     }
@@ -117,8 +152,15 @@ export default {
 
   methods: {
     resize: function() {
-      this.dimensions.width = window.innerWidth
-      this.dimensions.height = window.innerHeight
+      Vue.set(this.visOptions.dimensions,'width',window.innerWidth)
+      Vue.set(this.visOptions.dimensions,'height',window.innerHeight)
+    },
+
+    giveConsent: function() {
+      this.consent = true
+      this.$nextTick(() => {
+        this.$vuetify.goTo("#target", {duration: 2000});
+      });
     },
 
     showMemory: function(memory) {
@@ -134,14 +176,33 @@ export default {
       }
     },
 
-    showLine: function(show) {
-      Vue.set(this.newMemory,'showLine',show)
+    stepEnterHandler({element, direction}) {
+      direction //maybe we need this later
+      switch(element.className) {
+        case "introWrapper": 
+           Vue.set(this.visOptions,'progress',0)
+          break
+      }
+      //this.currStepId = element.dataset.stepId
     },
 
-    toggleForm: function(event) { //using an own method instead of inline assignment to stay sane
-      if(event) {
-        Vue.set(this.newMemory,'date',event)
-        Vue.set(this.newMemory,'showLine',false)
+    stepProgressHandler({element, progress}) {
+      if(element.className == "animatorWrapper" && this.consent) {
+        let showElementsNumber = Math.ceil(progress * this.memories.length)
+        Vue.set(this.visOptions,'progress',showElementsNumber)
+      }
+    },
+
+    toggleDatepicker: function() {
+      let bool = !this.newMemory.datepicker
+      Vue.set(this.newMemory,'datepicker',bool)
+    },
+
+    toggleForm: function(date) { //using an own method instead of inline assignment to stay sane
+      console.log(date)
+      if(date) {
+        Vue.set(this.newMemory,'date',date)
+        Vue.set(this.newMemory,'datepicker',false)
         Vue.set(this.newMemory,'showForm',true)
         this.overlay = true
       } else {
@@ -153,40 +214,72 @@ export default {
 }
 </script>
 
+<style src="vue-scrollama/dist/vue-scrollama.css"></style>
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;900&display=swap');
 
-.introWrapper {
-  overflow:visible;
-  
-  //background: linear-gradient(90deg, rgba(255, 235, 198, .05) 0%, rgba(255, 235, 198, 1) 90%, rgba(255, 255, 255, 0) 100%);
-  padding: 0 100px 50px 20px;
-  font-family: 'Roboto Sans';
-  width: 33%;
-
+.introWrapper, .explorationWrapper, .animatorWrapper  {
+  //border: 1px dotted black;
+  height: 100vh;
+  padding-top: 150px;
 }
 
-.introWrapper p {
+.scrollama {
+  width: 40%;
+  padding: 0 0px 50px 30px;
   min-width: 200px;
-  max-width: 500px;}
+  max-width: 400px;
+  font-family: 'Roboto Slab', serif;
+  pointer-events: none;
+}
+
+button, .v-input {
+  pointer-events: all;
+}
 
 h1{
-  font-family: 'Shippori Mincho B1', serif;
+  margin: 50px 0 0 30px;
+  height: 100px;
+  position: fixed;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 400;
   font-size: 40px;
   color: #FA5E2D;
+  line-height: 30px;
 }
 
+h1 span{
+  font-weight: 900;
+}
+
+p {
+  font-family: 'Roboto Slab', serif;
+  font-weight: 400;
+}
+
+p.larger {
+  font-size: 1.2em;
+}
+
+p.smaller {
+  color: rgba(0,0,0,.5);
+  font-size: 9px;
+  line-height: 10px;
+}
 
 .visWrapper {
   position: fixed;
   width: 100%;
+  left: 0;
   height: 100%;
+  pointer-events: all;
 }
 
 
 #app {
-  //background: #FFEBC6;
+  background: #FFEBC6;
   min-height: 100%;
-  height: 100%
+  height: 100%;
 }
 </style>
