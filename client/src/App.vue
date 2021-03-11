@@ -1,25 +1,29 @@
 <template>
   <v-app>
     <template v-if="cases && memories && countries && mounted">
-    <h1>corona<br /><span>memories</span></h1>
+    
     <Scrollama
       class="scrollama"
       :progress="true"
       @step-enter="stepEnterHandler"
       @step-progress="stepProgressHandler"
     >
-      <div slot="graphic" class="visWrapper">
+
+      <!-- display intro-text and consent form -->
+      <div slot="graphic" class="visWrapper"> 
         <vis
           :cases="cases"
           :memories="memories"
           :options="visOptions"
           :country="currentCountry"
           :datePicker="newMemory.datepicker"
+          :hashtag="activeHashtag"
           @toggleForm="toggleForm($event)"
           @showMemory="showMemory" />
       </div>
 
         <div class="introWrapper" data-step="1">  
+          <h1>corona<br /><span>memories</span></h1>
           <p class="larger"> Numbers do not tell stories. <strong>People do.</strong></p>
           <p>Since the start of the pandemic <counter /> days ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
           <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You read the information letter and you voluntarily agree to  participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
@@ -29,40 +33,61 @@
             </v-btn>
         </div>
 
-        <div class="animatorWrapper" data-step="2"></div>
+        <!-- wrapper that controls progress of appearing memory bubbles -->
+        <div class="animatorWrapper" data-step="2"></div> 
 
-        <div v-if="consent" id="target" class="explorationWrapper" data-step="3">
-          <p><strong>What's the day the pandemic changed your life?</strong></p>
-          <v-btn color="primary" outlined elevation="2" @click="toggleDatepicker">
-            <template v-if="!newMemory.datepicker">
-              <v-icon small>mdi-tooltip-plus-outline</v-icon>Add a story to the curve
-            </template>
-            <template v-else>
-              <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
-            </template>
-          </v-btn>
-          <p v-if="newMemory.datepicker">click on the line to choose a date</p>
-          <hr style="color: #FA5E2D; margin: 20px 0; height: 1px;" />
+        <!-- display exploration controls and trigger submission form -->
+        <div v-if="consent" id="target" class="explorationWrapper" data-step="3"> 
+          <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries and/or hashtags to filter.</p>
           <v-select
             :items="countries"
             v-model="currentCountry"
             label="Your country"
             outlined />
+          <p v-if="hashtags" class="hashtags">
+            <v-chip
+              v-for="(hashtag, i) in hashtags.filter((e,i) => i<10).sort((a,b) => a.tag.localeCompare(b.tag))"
+              small
+              color="primary"
+              :outlined="(activeHashtag != hashtag.tag)"
+              :style="{fontSize: hashtag.size+'px', margin: '2px'}"
+              :key="'hashtag-'+i"
+              @click="filterMemories(hashtag.tag)">{{hashtag.tag}} </v-chip>
+          </p>
         </div>
-
-      <div class="formWrapper" v-if="newMemory.showForm">
-        <memoryForm
-          :date="newMemory.date"
-          :country="currentCountry"
-          @close="toggleForm(false)"/>
-      </div>
-      <div class="memoryWrapper" v-if="displayMemory.display">
-        <memoryDisplay
-          :memory="displayMemory.memory"
-          @close="showMemory(false)"/>
-      </div>
     </Scrollama>
+
+    <!-- call to action button -->
+    <div class="callToActionWrapper" v-if="consent && currentStepId > 1">
+          <v-btn color="primary" outlined elevation="2" @click="toggleDatepicker">
+            <template v-if="!newMemory.datepicker">
+              <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story to the curve
+            </template>
+            <template v-else>
+              <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
+            </template>
+          </v-btn>
+    </div>
+
+    <!-- submission form (default: hidden) -->
+    <div class="formWrapper" v-if="newMemory.showForm">
+      <memoryForm
+        :date="newMemory.date"
+        :country="currentCountry"
+        :countries="countries"
+        :hashtags="hashtags"
+        @close="toggleForm(false)"/>
+    </div>
+
+    <!-- display single memory (default: hidden) -->
+    <div class="memoryWrapper" v-if="displayMemory.display">
+      <memoryDisplay
+        :memory="displayMemory.memory"
+        @close="showMemory(false)"/>
+    </div>
     </template>
+
+    <!-- loading screen if not everything has loaded yet -->
     <template v-else>
       <v-card class="d-flex justify-center mb-6" color="rgb(255, 0, 0, 0.0)" elevation="0" style="margin-top: 100px;">
         <v-progress-circular
@@ -82,6 +107,8 @@ import AsyncComputed from 'vue-async-computed'
 Vue.use(AsyncComputed)
 import 'intersection-observer' // for cross-browser support
 import Scrollama from 'vue-scrollama'
+import * as d3 from 'd3'
+
 
 //get services for API connectivity
 import caseService from '@/services/caseService'
@@ -107,11 +134,14 @@ export default {
     return {
       mounted: false,
       consent: true, //only start recording after people consent
+      currentStepId: 0, //what part of the page are we in?
       countries: null, 
       currentCountry: "World",      
+      hashtags: null,
+      activeHashtag: null,
 
       visOptions: {
-        dimensions: {width: 0, height: 0, top: 20, right: 50, bottom: 50, left: 50},
+        dimensions: {width: 0, height: 0, top: 80, right: 50, bottom: 0, left: 50},
         progess: 0,
         overlay: false,
         displayMemory: false
@@ -138,6 +168,20 @@ export default {
     }
   },
 
+  watch:  {
+    memories: function(memories) {
+      let tags = memories.map(memory => memory.comment.match(/#[a-z]+/gi)).flat() //find all hashtags
+      let counted = tags.reduce((a, b) => (a[b] = (a[b] || 0) + 1, a), {}) //count occurence of single hashtags
+      let ranked = Object.keys(counted)
+        .map(tag => {return {tag: tag, occurences: counted[tag]}}) //turn into array
+        .sort((a,b) => b.occurences - a.occurences) //sort that array
+      
+      let scaleSize = d3.scaleLinear().domain(d3.extent(ranked,r=>r.occurences)).range([5,15]) //create scale for font sze of hashtags
+      ranked.forEach(hashtag => hashtag.size = scaleSize(hashtag.occurences)) //assign font size to each hashtag
+      this.hashtags = ranked;
+    }
+  },
+
   created() {
     window.addEventListener("resize", this.resize);
   },
@@ -147,7 +191,7 @@ export default {
     this.$nextTick(() => {
       this.resize()
       this.mounted = true;
-    })
+    })    
  },
 
   methods: {
@@ -165,14 +209,15 @@ export default {
 
     showMemory: function(memory) {
       if(memory) {
-        Vue.set(this.memories[this.memories.findIndex(e => e.id == memory.id)],'active',true)
+        Vue.set(this.memories[this.memories.findIndex(e => e.id == memory.id)],'active',true) //set memory active
         Vue.set(this.displayMemory,'memory',memory)
         Vue.set(this.displayMemory,'display',true)
-        this.overlay = true
+        Vue.set(this.visOptions,'overlay',true)
       } else {
         Vue.set(this.displayMemory,'display',false)
         Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false)
-        this.overlay = false
+        Vue.set(this.visOptions,'overlay',false)
+        
       }
     },
 
@@ -183,13 +228,13 @@ export default {
            Vue.set(this.visOptions,'progress',0)
           break
       }
-      //this.currStepId = element.dataset.stepId
+      this.currentStepId = element.dataset.step
     },
 
     stepProgressHandler({element, progress}) {
-      if(element.className == "animatorWrapper" && this.consent) {
-        let showElementsNumber = Math.ceil(progress * this.memories.length)
-        Vue.set(this.visOptions,'progress',showElementsNumber)
+      if(element.className == "animatorWrapper" && this.consent) { //if visitor has consentent AND were scrolling over the animatorWrapper
+        let showElementsNumber = Math.ceil(progress * this.memories.length) //compute number of memories to show (min: 0, max: all memories)
+        Vue.set(this.visOptions,'progress',showElementsNumber) //write to reactive data
       }
     },
 
@@ -198,8 +243,16 @@ export default {
       Vue.set(this.newMemory,'datepicker',bool)
     },
 
+    filterMemories: function(hashtag) {
+      if(this.activeHashtag != hashtag) {
+        this.activeHashtag = hashtag
+      } else {
+        this.activeHashtag = null
+      }
+    },
+
     toggleForm: function(date) { //using an own method instead of inline assignment to stay sane
-      console.log(date)
+      
       if(date) {
         Vue.set(this.newMemory,'date',date)
         Vue.set(this.newMemory,'datepicker',false)
@@ -216,13 +269,13 @@ export default {
 
 <style src="vue-scrollama/dist/vue-scrollama.css"></style>
 
-<style>
+<style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;900&display=swap');
 
 .introWrapper, .explorationWrapper, .animatorWrapper  {
   //border: 1px dotted black;
   height: 100vh;
-  padding-top: 150px;
+  padding-top: 10px;
 }
 
 .scrollama {
@@ -239,14 +292,20 @@ button, .v-input {
 }
 
 h1{
-  margin: 50px 0 0 30px;
-  height: 100px;
-  position: fixed;
+  margin: 50px 0 10px 0px;
+  //height: 100px;
+  //position: fixed;
   font-family: 'Roboto Slab', serif;
   font-weight: 400;
   font-size: 40px;
   color: #FA5E2D;
   line-height: 30px;
+}
+
+.callToActionWrapper {
+  position: fixed;
+  top: 10px;
+  right: 10px;
 }
 
 h1 span{
@@ -263,7 +322,7 @@ p.larger {
 }
 
 p.smaller {
-  color: rgba(0,0,0,.5);
+  color: rgba(0,0,0);
   font-size: 9px;
   line-height: 10px;
 }
@@ -274,6 +333,11 @@ p.smaller {
   left: 0;
   height: 100%;
   pointer-events: all;
+}
+
+.hashtags {
+  pointer-events: all;
+  line-height: 100%;
 }
 
 

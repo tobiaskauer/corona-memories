@@ -15,11 +15,23 @@ module.exports = {
     }
   },
 
+  async upvoteMemory (req, res) {
+    try {
+      Memory.update({ weight: Sequelize.literal('weight + 1') }, { where: { id: req.body.id } }); //update
+      const memory = await Memory.findByPk(req.body.id, {attributes: ['weight']}) //get new weight
+      res.send(memory) //return to client
+    } catch(err) {
+      res.status(400).send({
+        error: 'there was a problem, diggi'
+      })
+      console.log(err)
+    }
+  },
+
   async getMemories (req, res) {
     let attributes = ['date', 'author', 'enddate', 'comment', 'weight', 'id']
     let options = null
     if(req.body.country == "World") {
-      
       options = {
         attributes: attributes,
         order: Sequelize.literal('random()'), limit: 500
@@ -28,7 +40,6 @@ module.exports = {
       options = {
         attributes: attributes,
         where: {country: req.body.country},
-        
       }
     }
     

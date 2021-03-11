@@ -1,16 +1,18 @@
 <template>
-  <v-overlay >
+  <v-overlay>
     <v-card
-      :loading="loading"
       elevation="2"
-      opacity="0"
+      max-width="500"
+      min-width="400"
       light
-      class="mx-auto my-12">
+      class="mx-auto">
       
-        <div class="d-flex justify-end"><v-btn icon @click="close()"><v-icon center>mdi-close-circle</v-icon></v-btn></div>
-      
+      <!--<v-toolbar color="lightgrey">
+        <v-toolbar-title><span class="font"></span></v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon @click="close()"><v-icon center>mdi-close-circle</v-icon></v-btn>
+      </v-toolbar>-->
 
-      <v-card-title color="primary">Add your story to the curve</v-card-title>
       <v-card-text v-if="status">
         <v-alert
           border="left"
@@ -22,23 +24,65 @@
         <v-btn block color="primary" outlined @click="close()">Cool!</v-btn>
       </v-card-text>
       <v-card-text v-else>
+        <!-- story form -->
+        <v-expansion-panels accordion focusable v-model="panel">
+          <v-expansion-panel>
+            <v-expansion-panel-header>(1) Add your story to the curve</v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-form style="padding: 10px 0">
+                <v-text-field v-model="name" dense outlined label="Name (optional)" />
+                <v-textarea dense outlined v-model="comment"  label="Your Memory" />
+              </v-form>
+              <p v-if="hashtags" class="hashtags">
+                Adding these (or other) tags to your story helps others to find it <br/>
+                <v-chip
+                  v-for="(hashtag, i) in hashtags.filter((e,i) => i<15).sort((a,b) => a.tag.localeCompare(b.tag))"
+                  small
+                  color="primary"
+                  :outlined="!comment.includes(hashtag.tag)"
+                  :style="{margin: '2px'}"
+                  :key="'hashtag-'+i"
+                 @click="addTag(hashtag.tag)">{{hashtag.tag}} </v-chip>
+            </p>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+
+          <!-- metadata form -->
+          <v-expansion-panel>
+            <v-expansion-panel-header>(2) When and where did that happen?</v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-form  style="padding: 10px 0">
+                <v-select
+                  :items="countries"
+                  v-model="currentCountry"
+                  dense
+                  label="Your country"
+                   outlined />
+                <v-text-field
+                  v-model="date"
+                  label="Date"
+                  outlined
+                  dense
+                  readonly
+                ></v-text-field>
+                <v-checkbox
+                  v-model="exactDate"
+                  label="Use exact date"
+                ></v-checkbox>
+              </v-form>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
        <!-- <p>What did you lorem ipsum sed dolor sit amet?</p>-->
-        <v-form>
-          <v-text-field
-            v-model="name"
-            label="Name (optional)"
-          ></v-text-field>
-          <v-text-field
-            v-model="date"
-            label="Date"
-            readonly
-          ></v-text-field>
-          <v-textarea
-            v-model="memory" 
-            label="Your Memory"
-          ></v-textarea>
-          <v-btn block color="primary" outlined @click="sendMemory">Send</v-btn>
-        </v-form>
+        
+          
+    
+          <v-btn style="margin: 10px 0" block color="primary" outlined @click="sendMemory">Send</v-btn>
+          
+            <v-btn :style="{left: '50%', transform:'translateX(-50%)'}" x-small @click="close()">cancel</v-btn>
+          
+          
+        
       </v-card-text>
     <!--<v-date-picker v-model="picker"></v-date-picker>-->
     </v-card>
@@ -50,24 +94,36 @@ import MemoryService from '@/services/memoryService'
 export default {
   data () {
     return {
-      memory: 'abc123',
-      status: false,
-      loading: false,
+      comment: '',
       name: '',
+      status: false,
+      currentCountry: null,
+      exactDate: false,
+      panel: 0,
     }
   },
 
   props: {
     country: String,
+    countries: Array,
+    hashtags: Array,
     date: String,
   },
 
+  mounted() {
+    this.currentCountry = this.country
+  },
+
   methods: {
+    addTag: function(tag) {
+      this.comment = this.comment + " " + tag
+
+    },
     async sendMemory () {
       this.loading = true
 
       let payload = {
-        comment: this.memory,
+        comment: this.comment,
         date: new Date(this.date),
         name: this.name,
         country: this.country,
@@ -96,4 +152,17 @@ export default {
 </script>
 
 <style scoped>
+.font {
+  font-family: 'Roboto Slab', serif !important;
+}
+
+
+  .v-expansion-panel--active>.v-expansion-panel-header {
+    min-height: 16px
+  }
+
+
+.white {
+  color: white !important;
+}
 </style>

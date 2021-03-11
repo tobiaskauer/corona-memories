@@ -8,7 +8,7 @@ module.exports = {
       dialect: process.env.DIALECT || 'sqlite',
       host: process.env.HOST || 'localhost',
       storage: process.env.STORAGE || './coronaMemories.sqlite',
-      logging: false
+      //logging: false
     }
   }
 }
