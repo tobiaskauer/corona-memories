@@ -1,8 +1,7 @@
 <template>
-  <v-overlay>
     <v-card
+      id="memoryCard"
       elevation="2"
-      class="memoryCard"
       min-width="300"
       max-width="500">
       <div>
@@ -26,7 +25,6 @@
         </p>
       </v-card-text>
     </v-card>
-  </v-overlay>
 </template>
 
 <script>
@@ -72,9 +70,15 @@ export default {
 </script>
 
 <style scoped>
-.memoryCard {
+
+#memoryCard {
   background: linear-gradient(116.6deg, #FA5E2D 36.3%, #E63700 69.74%);
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%)
 }
+
 
 .fade-in-enter-active {
   transition: opacity 300ms cubic-bezier(0.55, 0.085, 0.68, 0.53);

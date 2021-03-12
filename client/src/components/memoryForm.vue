@@ -36,14 +36,14 @@
               <p v-if="hashtags" class="hashtags">
                 Adding these (or other) tags to your story helps others to find it <br/>
                 <v-chip
-                  v-for="(hashtag, i) in hashtags.filter((e,i) => i<15).sort((a,b) => a.tag.localeCompare(b.tag))"
+                  v-for="(hashtag, i) in hashtags.filter((e,i) => i<showHashtags).sort((a,b) => a.tag.localeCompare(b.tag))"
                   small
                   color="primary"
                   :outlined="!comment.includes(hashtag.tag)"
                   :style="{margin: '2px'}"
                   :key="'hashtag-'+i"
                  @click="addTag(hashtag.tag)">{{hashtag.tag}} </v-chip>
-            </p>
+            <a @click="showHashtags = 20">show more</a></p>
             </v-expansion-panel-content>
           </v-expansion-panel>
 
@@ -100,6 +100,7 @@ export default {
       currentCountry: null,
       exactDate: false,
       panel: 0,
+      showHashtags: 10,
     }
   },
 

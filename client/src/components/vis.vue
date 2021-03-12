@@ -1,5 +1,5 @@
 <template>
-  <svg :width="options.dimensions.width" :height="options.dimensions.height" v-if="mounted" z-index="5">
+  <svg :width="options.dimensions.width" :height="options.dimensions.height">
     
     <filter id="blurMe">
       <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
@@ -11,7 +11,7 @@
     <path
       :d="caseLine"
       stroke-width="3"
-      stroke-linecap="round" 
+      stroke-linejoin="round" 
       fill="none"
       stroke="black"/>
 
@@ -31,52 +31,33 @@
             @click="$emit('showMemory',memory)"
             @mouseover="hover(memory,$event)"
             @mouseout="hover(memory,$event)" />
-          <!--<text
-            :x="memory.x"
-            :y="memory.y"
-           fill="#FA5E2D"
-            @click="$emit('showMemory',memory)"
-            @mouseover="hover(memory,$event)"
-            @mouseout="hover(memory,$event)">{{memory.comment}}
-            </text>-->
+
          </g><!-- circleMemories </g>-->
       </g>
-
-      <!--<g v-for="(memory, k) in lineMemories" :key="'line-'+k" >
-        <path v-if="memory.path" stroke-linecap="round" :opacity="opacity" stroke-dasharray="1 5" stroke-width="2" :d="memory.path" stroke="#FA5E2D" fill="none" />
-      </g>-->
     </g>
 
-        
 
-  
-
-    <!--<g class="dateSelector" @click="$emit('showForm', formatDate(newMemory.date))" v-if="dateSelector">-->
     <g class="datePicker" @click="$emit('toggleForm', formatDate(newMemory.date))"
      v-if="datePicker"
      :transform="`translate(${newMemory.position.x},0)`"> <!-- can go to own component -->
       <line y1="0" :y2="options.dimensions.height" x1="0" x2="0" stroke="#FA5E2D" stroke-width="2px"  stroke-dasharray="0"/>
       <circle r="40" cx="0" :cy="newMemory.position.y" fill="#FA5E2D" />
-      <!--<text x="0" text-anchor="middle" :y="(newMemory.position.y - 5)">Click to add</text>-->
       <text x="0" text-anchor="middle" :y="(newMemory.position.y)">{{getRoughDate(newMemory.date)}}</text>
     </g>
 
     <g class="overlay" v-if="options.overlay">
       <rect x="0" y="0" :width="options.dimensions.width" :height="options.dimensions.height" fill="black" opacity=".5" pointer-events="none"/>
       <g v-if="currentMemory">
-
         <circle
           r=20
           :cx="currentMemory.x"
           :cy="currentMemory.y"
           fill="#FA5E2D" />
-
         <path
           :d="currentMemory.connector"
           stroke-width="2"
           fill="none"
           stroke="#FA5E2D"/>
-
       </g>
     </g>
   </svg>
@@ -91,7 +72,7 @@ export default {
     return {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
-      lineGenerator: d3.line().x(d => d.x).y(d => d.y).curve(d3.curveBasis),
+      lineGenerator: d3.line().x(d => d.x).y(d => d.y),//.curve(d3.curveBasis),
       mounted: false,
       beeswarm: null,
       opacity: 0.7, //circle opacity when not hovered
@@ -108,22 +89,19 @@ export default {
   props: {
     options: Object,
     hashtag: String,
-    //dimensions: Object,
     cases: Array,
     memories: Array,
     datePicker: Boolean,
-    //overlay: Boolean,
-
   },
 
   computed: {
-    parsedCases: function() {
-      return this.cases.map((c,i) => {
+    parsedCases: function() { //take cases from property, parse and assign readable keys
+      return this.cases.map((c) => {
         return {
           dateString: c.d,
           date: this.parseDate(c.d),
           value: c.v,
-          slope: (i>5) ? c.v - this.cases[i-6].v : 0 //helps computing the beeswarm's distance
+          //slope: (i>5) ? c.v - this.cases[i-6].v : 0 //helps computing the beeswarm's distance
         }
       })
     },
@@ -144,7 +122,6 @@ export default {
 
     caseLine: function() {
       if(!this.scales) return false
-
       let arr = this.parsedCases.map(c => { 
         c.x = this.scales.x(c.date)
         c.y = this.scales.y(c.value)
@@ -157,18 +134,25 @@ export default {
       if(!this.memories && !this.scales) return null
       let arr = this.memories //create new arr, because reactivity (maybe, dunno, did not work without it)
       
-      let slopeDomain = d3.extent(this.parsedCases, d=>d.slope)
+      //let slopeDomain = d3.extent(this.parsedCases, d=>d.slope)
+      
 
-      if(arr && arr.length > 0) { //compute x/y coordinates for all memories (before turning them into a beeswarm)
+      if(arr.length > 0) { //compute x/y coordinates for all memories (before turning them into a beeswarm)
+        arr.forEach((memory,i) => {
+          memory.slope = (i>5)
+          console.log(memory, i)
+        })
+
         //arr = arr.filter(memory => memory.date == memory.enddate) //only get memories that are only one day long
         arr.forEach((memory,i)=> {
-          let slope = this.getLineElement(memory.date).slope
-          let maxSlope = slope >= 0 ? slopeDomain[1] : slopeDomain [0] //if slope is negative, use negativ max to compute distance
-          let sign = (i%2) ? -1 : 1 //split into a line above and one below
-          let changeY = sign * (Math.abs(maxSlope) -  Math.abs(slope)) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
-          let changeX = sign * (maxSlope  - slope) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
-          memory.y = this.scales.y(this.getLineElement(memory.date).value) + changeY
-          memory.x = this.scales.x(this.parseDate(memory.date)) + changeX
+          i
+          //let slope = this.getLineElement(memory.date).slope
+          //let maxSlope = slope >= 0 ? slopeDomain[1] : slopeDomain [0] //if slope is negative, use negativ max to compute distance
+          //let sign = (i%2) ? -1 : 1 //split into a line above and one below
+          //let changeY = sign * (Math.abs(maxSlope) -  Math.abs(slope)) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
+          //let changeX = sign * (maxSlope  - slope) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
+          memory.y = this.scales.y(this.getLineElement(memory.date).value)// + changeY
+          memory.x = this.scales.x(this.parseDate(memory.date))// + changeX
           memory.radius = this.scales.radius(memory.weight)
         })
       }
@@ -177,30 +161,6 @@ export default {
       return arr
       
     },
-    
-
-    /*lineMemories: function() {
-      if(!this.memories && !this.scales) {console.log(this.memories,this.scales); return null} 
-      let arr = this.memories
-      if(arr.length > 0) {
-        arr = arr.filter(memory => memory.date != memory.enddate)
-        arr.forEach((memory,i)=> {
-          let segment = this.getLineSegment(memory.date,memory.enddate)
-          if(segment.length > 0) segment.forEach(s => s.y = s.y - 5) 
-          if(i==1)console.log(segment,this.lineGenerator(segment))
-          memory.path = this.lineGenerator(segment)
-        })
-      }
-      return arr
-    },*/
-
-
-    
-  /*beeswarm: function(){
-    if(!this.circleMemories) return null
-   
-    return 
-  },*/
 },
 
 watch: {
@@ -234,7 +194,7 @@ watch: {
        this.currentMemory.connector = `
         M${c.x} ${c.y}
         Q${(this.options.dimensions.width/2)} ${c.y}
-        ${(this.options.dimensions.width/2)} ${(this.options.dimensions.height/2)}`;
+        ${(this.options.dimensions.width/2)} ${(20)}`;
     }
   }
 },
@@ -297,38 +257,6 @@ watch: {
         }
       }
     },
-
-    //alternative interaction with dragging a line
-    /*onMouseMove: function(event) { //follow line
-      if(this.dateSelector) {
-        let endDate = this.scales.x.invert(event.clientX)
-        let dateString = this.formatDate(endDate)
-        let value = this.scales.y(this.getLineElement(dateString).value)
-
-        if(this.mouseDown) { //if mouse if pressed
-          let arr = this.getLineSegment(this.newMemory.startDate,endDate)
-          Vue.set(this.newMemory,'line', this.lineGenerator(arr)) //create svg Line
-        }
-        Vue.set(this.newMemory.circle,'x',event.clientX) //also move circle
-        Vue.set(this.newMemory.circle,'y',value)
-      }
-    },
-
-    onMouseDown: function(event) { //follow line
-      if(this.dateSelector) {
-        this.mouseDown = true
-        let exactDate = this.scales.x.invert(event.clientX)
-        Vue.set(this.newMemory,'startDate',exactDate)
-      }
-    },
-
-    onMouseUp: function(event) { //follow line
-      if(this.dateSelector) {
-        this.mouseDown = false
-        let exactDate = this.scales.x.invert(event.clientX)
-        exactDate
-      }
-    },*/
   },
 
   directives: { //axis computation

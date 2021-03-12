@@ -25,8 +25,8 @@
         <div class="introWrapper" data-step="1">  
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger"> Numbers do not tell stories. <strong>People do.</strong></p>
-          <p>Since the start of the pandemic <counter /> days ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You read the information letter and you voluntarily agree to  participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+          <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <a href="#">information letter</a> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn color="primary" outlined @click="giveConsent">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
@@ -59,14 +59,14 @@
 
     <!-- call to action button -->
     <div class="callToActionWrapper" v-if="consent && currentStepId > 1">
-          <v-btn color="primary" outlined elevation="2" @click="toggleDatepicker">
-            <template v-if="!newMemory.datepicker">
-              <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story to the curve
-            </template>
-            <template v-else>
-              <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
-            </template>
-          </v-btn>
+      <v-btn color="primary" outlined elevation="2" @click="toggleDatepicker">
+        <template v-if="!newMemory.datepicker">
+          <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story
+        </template>
+        <template v-else>
+          <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
+        </template>
+      </v-btn>
     </div>
 
     <!-- submission form (default: hidden) -->
@@ -85,18 +85,18 @@
         :memory="displayMemory.memory"
         @close="showMemory(false)"/>
     </div>
-    </template>
+  </template>
 
-    <!-- loading screen if not everything has loaded yet -->
-    <template v-else>
-      <v-card class="d-flex justify-center mb-6" color="rgb(255, 0, 0, 0.0)" elevation="0" style="margin-top: 100px;">
-        <v-progress-circular
+  <!-- loading screen if not everything has loaded yet -->
+  <template v-else>
+    <v-card class="d-flex justify-center mb-6" color="rgb(255, 0, 0, 0.0)" elevation="0" style="margin-top: 100px;">
+      <v-progress-circular
         :size="300"
         indeterminate
-        color="primary"
+       color="primary"
         >Loading ...<br />try refresing?</v-progress-circular>
       </v-card>
-      </template>
+    </template>
   </v-app>
 </template>
 
@@ -132,25 +132,24 @@ export default {
 
   data () {
     return {
-      mounted: false,
+      mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
       consent: true, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
-      countries: null, 
-      currentCountry: "World",      
-      hashtags: null,
-      activeHashtag: null,
+      countries: null, //to be filled in mounted()
+      currentCountry: "Germany", //to be changed via select, triggers reactivity for asyncComputed memories and cases
+      hashtags: null, //ranked list of present hashtags to be filled by watching memories
+      activeHashtag: null, //String of active hashtag (to filter memories)
 
-      visOptions: {
+      visOptions: { //all settings that need to be passed to vis-component
         dimensions: {width: 0, height: 0, top: 80, right: 50, bottom: 0, left: 50},
-        progess: 0,
-        overlay: false,
-        displayMemory: false
+        progess: 0, //count up to length of memories while scrolling
+        overlay: false, //manual SVG overlay (to display single circle on top), istead of a vuetify one
       },
 
-      displayMemory: {
-        display: false,
+      displayMemory: { //all settings that need to be passed to displayMemory-component
+        display: false, //initially, do not show a single memory 
       },
-      newMemory: {
+      newMemory: { //all settings that need to be passed to the form that adds a new memory (or the step before: picking a date)
         datepicker: false, //show circle (formerly line) that adds new dot
         showForm: false, //show form after clicking the dot
         date: "" //is set when hovering line and passed to memory form
@@ -161,10 +160,10 @@ export default {
 
   asyncComputed: {
     async cases() {
-      return (await caseService.getCases({country: this.currentCountry, metric: "relative_cases"})).data
+      return (await caseService.getCases({country: this.currentCountry, metric: "relative_cases"})).data //get cases from API (make this async to keep reactivity when changing country)
     },
     async memories() {
-      return (await memoryService.getMemories({country: this.currentCountry})).data
+      return (await memoryService.getMemories({country: this.currentCountry})).data //same as above
     }
   },
 
@@ -183,55 +182,55 @@ export default {
   },
 
   created() {
-    window.addEventListener("resize", this.resize);
+    window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
   },
 
   async mounted () {
-    this.countries = (await caseService.getCountries()).data.map(e => e.country)
-    this.$nextTick(() => {
-      this.resize()
-      this.mounted = true;
+    this.countries = (await caseService.getCountries()).data.map(e => e.country) //get countries once when mounting (no need to to this reactive)
+    this.$nextTick(() => { //when everything has loaded
+      this.resize() //get true dimensions of containers
+      this.mounted = true; //alllow to render DOM
     })    
  },
 
   methods: {
-    resize: function() {
-      Vue.set(this.visOptions.dimensions,'width',window.innerWidth)
+    resize: function() { //get dimensions and pass to vis-component
+      Vue.set(this.visOptions.dimensions,'width',window.innerWidth) 
       Vue.set(this.visOptions.dimensions,'height',window.innerHeight)
     },
 
-    giveConsent: function() {
+    giveConsent: function() { //by clicking the "I agree"-button
       this.consent = true
-      this.$nextTick(() => {
-        this.$vuetify.goTo("#target", {duration: 2000});
+      this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
+        this.$vuetify.goTo("#target", {duration: 2000}); //then scroll to them
       });
     },
 
     showMemory: function(memory) {
-      if(memory) {
+      if(memory) { //is true when a memory is passed
         Vue.set(this.memories[this.memories.findIndex(e => e.id == memory.id)],'active',true) //set memory active
         Vue.set(this.displayMemory,'memory',memory)
         Vue.set(this.displayMemory,'display',true)
         Vue.set(this.visOptions,'overlay',true)
-      } else {
-        Vue.set(this.displayMemory,'display',false)
-        Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false)
-        Vue.set(this.visOptions,'overlay',false)
+      } else { //when no memory is passed
+        Vue.set(this.displayMemory,'display',false) //hide display component
+        Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false) //find active memory, turn it back off
+        Vue.set(this.visOptions,'overlay',false) //don't show the svg overlay
         
       }
     },
 
-    stepEnterHandler({element, direction}) {
+    stepEnterHandler({element, direction}) {//handle scrolling from step to step
       direction //maybe we need this later
       switch(element.className) {
         case "introWrapper": 
-           Vue.set(this.visOptions,'progress',0)
+           Vue.set(this.visOptions,'progress',0) //math.ceil is needed elsewhere to show all memories, so let's reset counter to 0 when we scroll back to the intro
           break
       }
-      this.currentStepId = element.dataset.step
+      this.currentStepId = element.dataset.step //store current step in data
     },
 
-    stepProgressHandler({element, progress}) {
+    stepProgressHandler({element, progress}) { //handle scrolling with progress
       if(element.className == "animatorWrapper" && this.consent) { //if visitor has consentent AND were scrolling over the animatorWrapper
         let showElementsNumber = Math.ceil(progress * this.memories.length) //compute number of memories to show (min: 0, max: all memories)
         Vue.set(this.visOptions,'progress',showElementsNumber) //write to reactive data
@@ -292,7 +291,7 @@ button, .v-input {
 }
 
 h1{
-  margin: 50px 0 10px 0px;
+  margin: 30px 0 10px 0px;
   //height: 100px;
   //position: fixed;
   font-family: 'Roboto Slab', serif;
@@ -322,7 +321,8 @@ p.larger {
 }
 
 p.smaller {
-  color: rgba(0,0,0);
+  font-family: sans-serif;
+  color: rgba(100,100,100);
   font-size: 9px;
   line-height: 10px;
 }

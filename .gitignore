@@ -23,3 +23,4 @@
     *.sw?
     client/node_modules
     server/node_modules
+client/node_modules/.cache/eslint-loader/0eaa52b09057c6d71902d0eb1a47f241a19bd0d5.json.gz
