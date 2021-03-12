@@ -15,7 +15,6 @@
           :cases="cases"
           :memories="memories"
           :options="visOptions"
-          :country="currentCountry"
           :datePicker="newMemory.datepicker"
           :hashtag="activeHashtag"
           @toggleForm="toggleForm($event)"
@@ -83,7 +82,9 @@
     <div class="memoryWrapper" v-if="displayMemory.display">
       <memoryDisplay
         :memory="displayMemory.memory"
-        @close="showMemory(false)"/>
+        @close="showMemory(false)"
+        @previous="showMemory('previous')"
+        @next="showMemory('next')"/>
     </div>
   </template>
 
@@ -141,13 +142,14 @@ export default {
       activeHashtag: null, //String of active hashtag (to filter memories)
 
       visOptions: { //all settings that need to be passed to vis-component
-        dimensions: {width: 0, height: 0, top: 80, right: 50, bottom: 0, left: 50},
+        dimensions: {width: 0, height: 0, top: 100, right: 100, bottom: 0, left: 100},
         progess: 0, //count up to length of memories while scrolling
         overlay: false, //manual SVG overlay (to display single circle on top), istead of a vuetify one
       },
 
       displayMemory: { //all settings that need to be passed to displayMemory-component
         display: false, //initially, do not show a single memory 
+        memory: null,
       },
       newMemory: { //all settings that need to be passed to the form that adds a new memory (or the step before: picking a date)
         datepicker: false, //show circle (formerly line) that adds new dot
@@ -169,7 +171,10 @@ export default {
 
   watch:  {
     memories: function(memories) {
-      let tags = memories.map(memory => memory.comment.match(/#[a-z]+/gi)).flat() //find all hashtags
+      let tags = memories//find all hashtags
+        .map(memory => memory.comment.match(/#[a-z]+/gi))
+        .flat()
+        .filter(tag => tag) 
       let counted = tags.reduce((a, b) => (a[b] = (a[b] || 0) + 1, a), {}) //count occurence of single hashtags
       let ranked = Object.keys(counted)
         .map(tag => {return {tag: tag, occurences: counted[tag]}}) //turn into array
@@ -208,7 +213,20 @@ export default {
 
     showMemory: function(memory) {
       if(memory) { //is true when a memory is passed
-        Vue.set(this.memories[this.memories.findIndex(e => e.id == memory.id)],'active',true) //set memory active
+        let currentID = memory.id ? memory.id : this.displayMemory.memory.id //if memory is passed and has an id, take this. if not (e.g. if "prev" or "next are assed"), take the last active one
+        let currentMemoryIndex = this.memories.findIndex(e => e.id == currentID)  //find index of currently active memory
+
+        let futureMemoryIndex  //future index (when using buttons on didplay)
+        if(memory == "next") futureMemoryIndex = currentMemoryIndex +1 
+        if(memory == "previous") futureMemoryIndex = currentMemoryIndex -1 
+        if(futureMemoryIndex && this.memories[futureMemoryIndex]) { //if memory with does exist
+          Vue.set(this.memories[currentMemoryIndex],'active',false) //deactivate previously active memory
+          currentMemoryIndex = futureMemoryIndex //the future is now, old man
+        } else {
+          //currentMemoryIndex = currentMemoryIndex //nothing changes          
+        }
+
+        Vue.set(this.memories[currentMemoryIndex],'active',true) //set memory active
         Vue.set(this.displayMemory,'memory',memory)
         Vue.set(this.displayMemory,'display',true)
         Vue.set(this.visOptions,'overlay',true)

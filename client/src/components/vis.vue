@@ -1,38 +1,30 @@
 <template>
-  <svg :width="options.dimensions.width" :height="options.dimensions.height">
+  <svg :width="options.dimensions.width" :height="options.dimensions.height" v-if="mounted" z-index="5">
     
-    <filter id="blurMe">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
-    </filter>
-    
-    <g class="axis xAxis" v-axis:x="scales" :transform="`translate(0,${options.dimensions.height-options.dimensions.top-options.dimensions.bottom+10})`"></g>
-    <g class="axis yAxis" v-axis:y="scales" :transform="`translate(${options.dimensions.width-options.dimensions.right})`"></g>
+    <lines
+      :dimensions="options.dimensions"
+      :scales="scales"
+      :cases="parsedCases" />
 
-    <path
-      :d="caseLine"
-      stroke-width="3"
-      stroke-linejoin="round" 
-      fill="none"
-      stroke="black"/>
-
-    <g class="memories"  transform="translate(0,0)"> <!-- can go to component, actually.... -->
-      <g v-if="beeswarm">
-        <g v-for="memory, j in beeswarm.filter((e,i) => i < options.progress)" :key="j">
-          <circle
-          
-            :cx="memory.x"
-            :cy="memory.y"
-            :class="{inactive: memory.inactive}"
-            :r="memory.radius"
-            fill="#FA5E2D"
-            :filter="(options.overlay) ? 'url(#blurMe)' : ''"
-            :opacity="opacity"
-
-            @click="$emit('showMemory',memory)"
-            @mouseover="hover(memory,$event)"
-            @mouseout="hover(memory,$event)" />
-
-         </g><!-- circleMemories </g>-->
+    <g v-if="force" class="memories"  transform="translate(0,0)"> <!-- can go to component, actually.... -->
+      <circle
+        v-for="circle, i in parsedMemories.filter((e,i) => i < options.progress)" :key="'circle-'+i"
+        :cx="circle.x"
+        :cy="circle.y"
+        :class="{inactive: circle.inactive}"
+        :r="circle.radius"
+        fill="#FA5E2D"
+        :opacity="opacity"
+        @click="$emit('showMemory',circle)"
+        @mouseover="hover(circle,$event)"
+        @mouseout="hover(circle,$event)" />
+         
+      <!-- show hashtag labels (once all memories are visible) -->
+      <g v-if="hashtagLabels && options.progress >= parsedMemories.length - 10">
+        <g v-for="(link,i) in hashtagLabels" :key="'label-'+i" pointer-events="none">
+          <line stroke="#FA5E2D" stroke-width=".5" :x1="link.source.x" :y1="link.source.y" :x2="link.target.x" :y2="link.target.y+1" />
+          <text style="text-decoration: underline;" font-weight="bold" fill="#FA5E2D" font-size="11" :x="link.target.x" :text-anchor="link.target.anchor" :y="link.target.y">{{link.target.text}}</text>
+        </g>
       </g>
     </g>
 
@@ -42,22 +34,26 @@
      :transform="`translate(${newMemory.position.x},0)`"> <!-- can go to own component -->
       <line y1="0" :y2="options.dimensions.height" x1="0" x2="0" stroke="#FA5E2D" stroke-width="2px"  stroke-dasharray="0"/>
       <circle r="40" cx="0" :cy="newMemory.position.y" fill="#FA5E2D" />
+      <!--<text x="0" text-anchor="middle" :y="(newMemory.position.y - 5)">Click to add</text>-->
       <text x="0" text-anchor="middle" :y="(newMemory.position.y)">{{getRoughDate(newMemory.date)}}</text>
     </g>
 
     <g class="overlay" v-if="options.overlay">
       <rect x="0" y="0" :width="options.dimensions.width" :height="options.dimensions.height" fill="black" opacity=".5" pointer-events="none"/>
       <g v-if="currentMemory">
+
         <circle
           r=20
           :cx="currentMemory.x"
           :cy="currentMemory.y"
           fill="#FA5E2D" />
+
         <path
           :d="currentMemory.connector"
           stroke-width="2"
           fill="none"
           stroke="#FA5E2D"/>
+
       </g>
     </g>
   </svg>
@@ -66,17 +62,22 @@
 <script>
 import Vue from 'vue'
 import * as d3 from 'd3'
+//import {annotation, annotationCallout} from "d3-svg-annotation"
+import lines from './lines'
 
 export default {
+  components: {
+    lines,
+  },
   data () {
     return {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
-      lineGenerator: d3.line().x(d => d.x).y(d => d.y),//.curve(d3.curveBasis),
+      lineGenerator: d3.line().x(d => d.x).y(d => d.y).curve(d3.curveBasis),
       mounted: false,
-      beeswarm: null,
-      opacity: 0.7, //circle opacity when not hovered
-      forceDistance: 10, //distance of reactions to line
+      force: null,
+      opacity: 0.8, //circle opacity when not hovered
+      forceDistance: 8, //distance of reactions to line
       currentMemory: null, //when currently displaying a memory, pick the right one to highlight
       newMemory: {
         date: null,
@@ -92,16 +93,16 @@ export default {
     cases: Array,
     memories: Array,
     datePicker: Boolean,
+
   },
 
   computed: {
-    parsedCases: function() { //take cases from property, parse and assign readable keys
+    parsedCases: function() {
       return this.cases.map((c) => {
         return {
           dateString: c.d,
           date: this.parseDate(c.d),
           value: c.v,
-          //slope: (i>5) ? c.v - this.cases[i-6].v : 0 //helps computing the beeswarm's distance
         }
       })
     },
@@ -115,98 +116,114 @@ export default {
 
       let x = d3.scaleTime().domain(xDomain).range([this.options.dimensions.left,this.options.dimensions.width-this.options.dimensions.right])
       let y = d3.scaleLinear().domain(yDomain).range([this.options.dimensions.height-this.options.dimensions.bottom-this.options.dimensions.top,this.options.dimensions.top])
-      let radius = d3.scaleLinear().domain(radiusDomain).range([3,4])
+      let radius = d3.scaleLinear().domain(radiusDomain).range([2,6])
       
       return {x: x, y: y, radius: radius}
     },
 
-    caseLine: function() {
-      if(!this.scales) return false
-      let arr = this.parsedCases.map(c => { 
-        c.x = this.scales.x(c.date)
-        c.y = this.scales.y(c.value)
-        return c;
+    parsedMemories: function() {
+      if(!this.memories) return null
+
+      this.scales //mention to force recomputation if dimensions change
+
+      return this.memories.map((memory,i) => {
+        let sign = (i%2) ? 1 : -1
+        memory.Date = this.parseDate(memory.date)
+        memory.x = this.scales.x(memory.Date)
+        memory.value = this.getLineElement(memory.date).value
+        memory.y = this.scales.y(memory.value) + this.forceDistance * sign
+        memory.radius = this.scales.radius(memory.weight)
+        memory.hashtag = (memory.comment.match(/#[a-z]+/gi)) ? (memory.comment.match(/#[a-z]+/gi))[0] : null 
+
+        return memory
       })
-    return this.lineGenerator(arr)
-  },
-
-    circleMemories: function() {
-      if(!this.memories && !this.scales) return null
-      let arr = this.memories //create new arr, because reactivity (maybe, dunno, did not work without it)
-      
-      //let slopeDomain = d3.extent(this.parsedCases, d=>d.slope)
-      
-
-      if(arr.length > 0) { //compute x/y coordinates for all memories (before turning them into a beeswarm)
-        arr.forEach((memory,i) => {
-          memory.slope = (i>5)
-          console.log(memory, i)
-        })
-
-        //arr = arr.filter(memory => memory.date == memory.enddate) //only get memories that are only one day long
-        arr.forEach((memory,i)=> {
-          i
-          //let slope = this.getLineElement(memory.date).slope
-          //let maxSlope = slope >= 0 ? slopeDomain[1] : slopeDomain [0] //if slope is negative, use negativ max to compute distance
-          //let sign = (i%2) ? -1 : 1 //split into a line above and one below
-          //let changeY = sign * (Math.abs(maxSlope) -  Math.abs(slope)) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
-          //let changeX = sign * (maxSlope  - slope) * (1/this.forceDistance) //change on y axis decreases as slope gets higher
-          memory.y = this.scales.y(this.getLineElement(memory.date).value)// + changeY
-          memory.x = this.scales.x(this.parseDate(memory.date))// + changeX
-          memory.radius = this.scales.radius(memory.weight)
-        })
-      }
-      //arr.forEach(m=>console.log(m.hidden))
-      //console.log(arr.filter(m=>m.active))
-      return arr
-      
     },
-},
 
-watch: {
-  circleMemories: function(circleMemories) {
-     let force = d3.forceSimulation(circleMemories)
-      .force('forceX', d3.forceX(memory => memory.x).strength(.1))
-      .force('forceY', d3.forceY(memory => memory.y).strength(.1))
-      .force('collide', d3.forceCollide(d => d.radius + .5))
-    for (let i = 0; i < 100; ++i) {
-      force.tick()
-    }
-    
-    this.beeswarm = force.nodes()
+    //generate force directed hashtags of X most weightened labels
+    hashtagLabels() {
+      if(!this.memories) return null
+      this.scales //mention to force recomputation if dimensions change
+
+      let nodes = []
+      let links = [] //
+
+      let memoriesWithTags = this.memories.filter(memory => memory.hashtag && !memory.inactive) //all active memories that have hashtags
+      
+      let latestHashtag = [...memoriesWithTags].sort((a,b) => b.Date - a.Date)[0] //the latest memory that has a hashtag
+      let selectedTags = memoriesWithTags.sort((a,b) => b.weight - a.weight).slice(0,10) //the X most weightened labels
+      selectedTags.push(latestHashtag) //the newest one (to put them into the view)
+
+      selectedTags.forEach((memory,i) => { //create node-link data
+          nodes.push({type: "circle", fx: memory.x, fy: memory.y}) //origin
+          nodes.push({type: "label", text: memory.hashtag}) //target
+          links.push({source: i*2, target: i*2+1}) //link the two
+        })
+
+        var simulation = d3.forceSimulation(nodes) //generate force directed simulation
+        .force('charge', d3.forceManyBody().strength(-0))
+        .force('link', d3.forceLink().links(links))
+        //.force('forceY', d3.forceY())
+        .force('collide', d3.forceCollide(node => {return (node.text) ? node.text.length * 2 : 50}))
+
+        for(let i = 0; i <= 200; i++) {
+          simulation.tick()
+        }
+
+        links.forEach(link => {
+          link.target.anchor = (link.target.x > link.source.x) ? "start" : "end"
+        })
+      return links
+
+    },
   },
 
-  hashtag: function(newHashtag){
-    if(!this.beeswarm) return null
-    this.beeswarm.forEach((memory,i) => {
-      if(newHashtag && !memory.comment.includes(newHashtag)) {
-        Vue.set(this.beeswarm[i],'inactive',true)
-      } else {
-        Vue.set(this.beeswarm[i],'inactive',false)
+  watch: {
+    parsedMemories: function(memories) {
+      this.releaseTheBees(memories)
+   },
+
+    hashtag: function(newHashtag){
+      if(!this.memories) return null
+      this.memories.forEach((memory,i) => {
+        if(newHashtag && !memory.comment.includes(newHashtag)) {
+          Vue.set(this.memories[i],'inactive',true)
+        } else {
+          Vue.set(this.memories[i],'inactive',false)
+        }
+      })
+    },
+
+    memories: function(arr) { //show circle on overlay after beeswarm changed
+      let c = arr.filter(e=>e.active)[0]
+      if(c) {
+        this.currentMemory = c
+         this.currentMemory.connector = `
+          M${c.x} ${c.y}
+          Q${(this.options.dimensions.width/2)} ${c.y}
+          ${(this.options.dimensions.width/2)} ${(10)}`;
       }
-    })
-  },
-
-  beeswarm: function(arr) { //show circle on overlay after beeswarm changed
-    let c = arr.filter(e=>e.active)[0]
-    if(c) {
-      this.currentMemory = c
-       this.currentMemory.connector = `
-        M${c.x} ${c.y}
-        Q${(this.options.dimensions.width/2)} ${c.y}
-        ${(this.options.dimensions.width/2)} ${(20)}`;
     }
-  }
-},
+  },
 
   async mounted() {
-    this.mounted = true;
+    this.releaseTheBees(this.memories)
     document.addEventListener('mousemove', this.onMouseMove)
-    /*document.addEventListener('mousedown', this.onMouseDown)
-    document.addEventListener('mouseup', this.onMouseUp)*/
+    this.mounted = true;
   },
 
   methods: {
+    releaseTheBees: function(memories) {
+      
+      this.force = d3.forceSimulation(memories)
+      .force('forceX', d3.forceX(memory => memory.x).strength(.1))
+      .force('forceY', d3.forceY(memory => memory.y).strength(.1))
+      .force('collide', d3.forceCollide(d => d.radius + .5))
+
+      for(let i = 0; i <= 20; i++) {
+        this.force.tick()
+      }
+    },
+
     hover: function(memory,event) { //hovering circles
       if(!this.datePicker) {  //disable hover when memory adding is in progress
         let r = 10
@@ -238,8 +255,8 @@ watch: {
       if(!date) return null
       
       let rough = "Late"
-      if(date.getDate() < 20) rough = "Mid"
-      if(date.getDate() < 10) rough = "Early"
+      if(date.getDate() <= 20) rough = "Mid"
+      if(date.getDate() <= 10) rough = "Early"
       let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()]
         
       return rough+" "+month
@@ -259,36 +276,10 @@ watch: {
     },
   },
 
-  directives: { //axis computation
-    axis(el, binding) {
-      let axis = d3.select(el)
-      switch(binding.arg) {
-        case "x":
-          axis.call(d3
-            .axisBottom(binding.value.x)
-            .ticks(d3.timeMonth)
-            .tickFormat(d3.timeFormat("%b"))
-          );
-          axis.selectAll(".domain").attr("stroke","none")
-          axis.selectAll(".tick line").attr("stroke","none")
-          axis.selectAll(".tick text")
-            .style("text-anchor", "end")
-            .style("text-transform", "UPPERCASE")
-            .style("opacity", .3)
-          break;
-        case "y":
-          axis.call(d3
-            .axisRight(binding.value.y)
-            .tickSize(-1000)
-            .ticks(5)
-          );
-          axis.selectAll(".domain").attr("stroke","none")
-          axis.selectAll(".tick line").attr("opacity",.05)
-          axis.selectAll(".tick text").attr("opacity",.3)
-          break;
-      }
-    }
-  }
+  /*updated: function() {
+    console.log("foo")
+      this.force.tick()
+  },*/
 }
 </script>
 
