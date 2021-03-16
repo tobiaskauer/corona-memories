@@ -10,7 +10,7 @@
     >
 
       <!-- display intro-text and consent form -->
-      <div slot="graphic" class="visWrapper"> 
+      <div slot="graphic" ref="vis" class="visWrapper"> 
         <vis
           :cases="cases"
           :memories="memories"
@@ -83,8 +83,8 @@
       <memoryDisplay
         :memory="displayMemory.memory"
         @close="showMemory(false)"
-        @previous="showMemory('previous')"
-        @next="showMemory('next')"/>
+        @previous="changeMemory('previous')"
+        @next="changeMemory('next')"/>
     </div>
   </template>
 
@@ -120,6 +120,7 @@ import memoryForm from './components/memoryForm'
 import memoryDisplay from './components/memoryDisplay'
 import counter from './components/counter'
 import vis from './components/vis'
+
 
 export default {
   name: 'App',
@@ -188,6 +189,7 @@ export default {
 
   created() {
     window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
+
   },
 
   async mounted () {
@@ -212,30 +214,29 @@ export default {
     },
 
     showMemory: function(memory) {
+      
       if(memory) { //is true when a memory is passed
-        let currentID = memory.id ? memory.id : this.displayMemory.memory.id //if memory is passed and has an id, take this. if not (e.g. if "prev" or "next are assed"), take the last active one
-        let currentMemoryIndex = this.memories.findIndex(e => e.id == currentID)  //find index of currently active memory
-
-        let futureMemoryIndex  //future index (when using buttons on didplay)
-        if(memory == "next") futureMemoryIndex = currentMemoryIndex +1 
-        if(memory == "previous") futureMemoryIndex = currentMemoryIndex -1 
-        if(futureMemoryIndex && this.memories[futureMemoryIndex]) { //if memory with does exist
-          Vue.set(this.memories[currentMemoryIndex],'active',false) //deactivate previously active memory
-          currentMemoryIndex = futureMemoryIndex //the future is now, old man
-        } else {
-          //currentMemoryIndex = currentMemoryIndex //nothing changes          
-        }
-
-        Vue.set(this.memories[currentMemoryIndex],'active',true) //set memory active
+        Vue.set(this.memories[this.memories.findIndex(stack => stack.id == memory.id)],'active',true) //set memory active
         Vue.set(this.displayMemory,'memory',memory)
         Vue.set(this.displayMemory,'display',true)
         Vue.set(this.visOptions,'overlay',true)
       } else { //when no memory is passed
         Vue.set(this.displayMemory,'display',false) //hide display component
         Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false) //find active memory, turn it back off
-        Vue.set(this.visOptions,'overlay',false) //don't show the svg overlay
-        
+        Vue.set(this.visOptions,'overlay',false) //don't show the svg overlay 
       }
+    },
+
+    changeMemory: function(direction) {
+      let currentMemoryIndex = this.memories.findIndex(e => e.active)
+      let futureMemoryIndex  //future index (when using buttons on didplay)
+        if(direction == "next") futureMemoryIndex = currentMemoryIndex +1 
+        if(direction == "previous") futureMemoryIndex = currentMemoryIndex -1 
+        if(futureMemoryIndex && this.memories[futureMemoryIndex]) { //if memory with does exist
+          Vue.set(this.displayMemory,'memory',this.memories[futureMemoryIndex])
+          Vue.set(this.memories[currentMemoryIndex],'active',false) //deactivate previously active memory 
+          Vue.set(this.memories[futureMemoryIndex],'active',true) //activate now active memory 
+        }
     },
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
@@ -268,6 +269,10 @@ export default {
       }
     },
 
+    debug: function(event) {
+      console.log(event)
+    },
+
     toggleForm: function(date) { //using an own method instead of inline assignment to stay sane
       
       if(date) {
@@ -279,7 +284,7 @@ export default {
         Vue.set(this.newMemory,'showForm',false)
         this.overlay = false
       }
-    }
+    },
   }
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <svg :width="options.dimensions.width" :height="options.dimensions.height" v-if="mounted" z-index="5">
+  <svg :width="options.dimensions.width" :height="options.dimensions.height">
     
     <lines
       :dimensions="options.dimensions"
@@ -74,7 +74,6 @@ export default {
       parseDate: d3.utcParse("%Y-%m-%d"),
       formatDate: d3.timeFormat("%Y-%m-%d"),
       lineGenerator: d3.line().x(d => d.x).y(d => d.y).curve(d3.curveBasis),
-      mounted: false,
       force: null,
       opacity: 0.8, //circle opacity when not hovered
       forceDistance: 8, //distance of reactions to line
@@ -200,7 +199,7 @@ export default {
          this.currentMemory.connector = `
           M${c.x} ${c.y}
           Q${(this.options.dimensions.width/2)} ${c.y}
-          ${(this.options.dimensions.width/2)} ${(10)}`;
+          ${(this.options.dimensions.width/2)} ${(50)}`;
       }
     }
   },
@@ -208,7 +207,6 @@ export default {
   async mounted() {
     this.releaseTheBees(this.memories)
     document.addEventListener('mousemove', this.onMouseMove)
-    this.mounted = true;
   },
 
   methods: {

@@ -21,7 +21,7 @@
         
           <v-row dense align="center">
             <v-col class="col-auto" style="margin-right: 20px;">
-              <v-btn fab outlined center color="white" @click="upvote">
+              <v-btn fab outlined center color="white" @click="upvote($event)">
                 <strong>{{weight}}</strong><br />
                 <v-icon small>mdi-heart</v-icon>
               </v-btn>
@@ -77,6 +77,7 @@ export default {
     },
 
     async upvote(){
+      console.log()
       try {
         MemoryService.upvoteMemory({id: this.memory.id}).then(response => {
           this.weight = response.data.weight
