@@ -29,7 +29,7 @@
             <v-col>
               <p style="font-size:.8em; font-family: monospace; margin-bottom: 0">
                 <span v-if="memory.author"> {{memory.author}}</span><span v-else><em>{{anonymous}}</em></span>,
-                {{memory.date}}
+                {{displayDate}}
               </p>
               <p>{{memory.comment}}</p>
             </v-col>
@@ -69,6 +69,25 @@ export default {
 
   created() {
     this.weight = this.memory.weight
+  },
+
+  computed: {
+    displayDate: function() {
+      console.log(this.memory, "foo")
+      if(!this.memory.date) return null
+      if(this.memory.exactDate) {
+        return this.memory.date
+      } else {
+        let parsedDate = new Date(this.memory.date)
+
+        let rough = "Late"
+        if(parsedDate.getDate() <= 20) rough = "Mid"
+        if(parsedDate.getDate() <= 10) rough = "Early"
+        let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][parsedDate.getMonth()]
+        
+        return rough+" "+month
+      }
+    }
   },
 
   methods: {

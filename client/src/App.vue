@@ -5,7 +5,6 @@
     <Scrollama
       class="scrollama"
       :progress="true"
-      :once="true"
       @step-enter="stepEnterHandler"
       @step-progress="stepProgressHandler"
     >
