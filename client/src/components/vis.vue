@@ -8,6 +8,7 @@
 
     <g v-if="force" class="memories"  transform="translate(0,0)"> <!-- can go to component, actually.... -->
       <circle
+        
         v-for="circle, i in parsedMemories.filter((e,i) => i < options.progress)" :key="'circle-'+i"
         :cx="circle.x"
         :cy="circle.y"

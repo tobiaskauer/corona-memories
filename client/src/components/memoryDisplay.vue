@@ -1,9 +1,9 @@
 <template>
   <v-container fluid class="container">
-    <v-row dense align="center" justify="center">
+    <v-row dense justify="center">
       <v-col style="text-align: right">
         <v-btn icon @click="$emit('previous')">
-          <v-icon color="white" center>mdi-arrow-left-circle</v-icon>
+          <v-icon color="lightgrey" center>mdi-chevron-left-circle</v-icon>
         </v-btn>
       </v-col>
       <v-col>
@@ -39,7 +39,7 @@
       </v-col>
       <v-col>
         <v-btn icon @click="$emit('next')">
-          <v-icon color="white" center>mdi-arrow-right-circle</v-icon>
+          <v-icon color="lightgrey" center>mdi-chevron-right-circle</v-icon>
         </v-btn>
       </v-col>
     </v-row>

@@ -5,6 +5,7 @@
     <Scrollama
       class="scrollama"
       :progress="true"
+      :once="true"
       @step-enter="stepEnterHandler"
       @step-progress="stepProgressHandler"
     >
@@ -198,7 +199,7 @@ export default {
       this.resize() //get true dimensions of containers
       this.mounted = true; //alllow to render DOM
     })    
- },
+  },
 
   methods: {
     resize: function() { //get dimensions and pass to vis-component
@@ -267,11 +268,7 @@ export default {
       } else {
         this.activeHashtag = null
       }
-    },
-
-    debug: function(event) {
-      console.log(event)
-    },
+    }, 
 
     toggleForm: function(date) { //using an own method instead of inline assignment to stay sane
       
@@ -298,11 +295,12 @@ export default {
   //border: 1px dotted black;
   height: 100vh;
   padding-top: 10px;
+  padding: 20px 0px 50px 30px;
 }
 
 .scrollama {
   width: 40%;
-  padding: 0 0px 50px 30px;
+  
   min-width: 200px;
   max-width: 400px;
   font-family: 'Roboto Slab', serif;
@@ -351,7 +349,7 @@ p.smaller {
 }
 
 .visWrapper {
-  position: fixed;
+  position: absolute;
   width: 100%;
   left: 0;
   height: 100%;
