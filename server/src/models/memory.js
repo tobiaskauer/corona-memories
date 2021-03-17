@@ -19,6 +19,9 @@ module.exports = (sequelize, DataTypes) =>
       type: DataTypes.INTEGER,
       defaultValue: '1'
     },
+    exactDate: {
+      type: DataTypes.BOOLEAN,
+    },
     date: {
       type: DataTypes.DATEONLY,
     },

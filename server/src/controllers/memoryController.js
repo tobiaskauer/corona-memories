@@ -29,7 +29,7 @@ module.exports = {
   },
 
   async getMemories (req, res) {
-    let attributes = ['date', 'author', 'enddate', 'comment', 'weight', 'id']
+    let attributes = ['date', 'author', 'exactDate', 'comment', 'weight', 'id']
     let options = null
     if(req.body.country == "World") {
       options = {
