@@ -14,24 +14,33 @@
       max-width="500">
       <div>
           <v-btn style="position: absolute; right: 5px; top: 0px;" icon @click="close">
-            <v-icon center color="white" small>mdi-close-circle</v-icon>
+            <v-icon center color="lightgrey" small>mdi-close-circle</v-icon>
           </v-btn>
         </div>
       <v-card-text>
         
-          <v-row dense align="center">
-            <v-col class="col-auto" style="margin-right: 20px;">
-              <v-btn fab outlined center color="white" @click="upvote($event)">
+          <v-row dense>
+            <v-col class="col-auto" style="text-align: center">
+              <v-btn fab outlined center color="black" @click="upvote($event)" @mouseover="mouseOver(true)" @mouseout="mouseOver(false)">
                 <strong>{{weight}}</strong><br />
-                <v-icon small>mdi-heart</v-icon>
+                <v-icon color="black" small>mdi-heart</v-icon>
               </v-btn>
             </v-col>
             <v-col>
               <p style="font-size:.8em; font-family: monospace; margin-bottom: 0">
-                <span v-if="memory.author"> {{memory.author}}</span><span v-else><em>{{anonymous}}</em></span>,
+                <span v-if="memory.author"> {{memory.author}}</span><span v-else><em>anonymous</em></span>,
                 {{displayDate}}
               </p>
               <p>{{memory.comment}}</p>
+              <template v-if="!status">
+                <v-btn outlined color="rgba(0,0,0,.6)" small @click="report">
+                  <v-icon color="rgba(0,0,0,.6)" x-small>mdi-flag</v-icon>
+                  Report
+                </v-btn>
+              </template>
+              <template v-else>
+                <v-alert dismissible outlined color="rgba(0,0,0,.6)" type="info" dense>{{status}}</v-alert>  
+              </template>
             </v-col>
           </v-row>
       </v-card-text>
@@ -52,7 +61,8 @@ import MemoryService from '@/services/memoryService'
 export default {
   data () {
     return {
-      weight: null
+      weight: null,
+      status: null,
     }
   },
 
@@ -73,7 +83,6 @@ export default {
 
   computed: {
     displayDate: function() {
-      console.log(this.memory, "foo")
       if(!this.memory.date) return null
       if(this.memory.exactDate) {
         return this.memory.date
@@ -95,11 +104,36 @@ export default {
       this.$emit('close')
     },
 
+    mouseOver: function(enter) {
+      if(enter) {
+        this.weight = "+1"
+      } else {
+        this.weight = this.memory.weight
+      }
+      
+    },
+
     async upvote(){
-      console.log()
       try {
         MemoryService.upvoteMemory({id: this.memory.id}).then(response => {
-          this.weight = response.data.weight
+          if(response.status == 200) this.weight = response.data.weight
+        })
+      } catch(err) {
+        console.log(err)
+      }
+    },
+
+    async report() {
+       try {
+        MemoryService.flagMemory({id: this.memory.id, flagged: true}).then(response => {
+          if(response.status == 200){
+            
+            this.status = "Thank you. We will not show this story until we reviewed it."
+            
+            setTimeout(() => {
+              this.$emit('delete',{id: this.memory.id})
+          }, 2000)
+          } 
         })
       } catch(err) {
         console.log(err)
