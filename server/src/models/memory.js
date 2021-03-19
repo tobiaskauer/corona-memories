@@ -28,4 +28,8 @@ module.exports = (sequelize, DataTypes) =>
     enddate: {
       type: DataTypes.DATEONLY,
     },
+    flagged: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: '0'
+    },
   })

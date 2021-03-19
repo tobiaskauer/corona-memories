@@ -11,5 +11,10 @@ export default {
 
   upvoteMemory (id) {
     return Api().post("upvoteMemory", id)
-  }
+  },
+
+  flagMemory (body) {
+    console.log("Service: ", body)
+    return Api().post("flagMemory", body)
+  },
 }

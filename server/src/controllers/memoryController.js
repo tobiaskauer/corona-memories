@@ -1,4 +1,4 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, where } = require('sequelize');
 const {Memory} = require('../models')
 
 
@@ -23,25 +23,63 @@ module.exports = {
     } catch(err) {
       res.status(400).send({
         error: 'there was a problem, diggi'
-      })
+      })    
       console.log(err)
     }
   },
 
-  async getMemories (req, res) {
-    let attributes = ['date', 'author', 'exactDate', 'comment', 'weight', 'id']
-    let options = null
-    if(req.body.country == "World") {
+
+  async flagMemory (req, res) {
+    try {
+      console.log(req.body.flagged, req.body.id)
+      const memory = await Memory.update({ flagged: req.body.flagged }, { where: { id: req.body.id } }); //update
+      console.log(memory)
+      res.send(memory) //return to client
+    } catch(err) {
+      res.status(400).send({
+        error: 'there was a problem, diggi'
+      })    
+      console.log(err)
+    }
+  },
+
+
+  async getMemories (req, res) {    
+    let options = {
+      attributes: (req.body.attributes) ? req.body.attributes : null,
+      where: {}
+    }
+
+    if(req.body.country) { //if a country is passed
+      options.where.country = req.body.country
+    }
+
+    if (req.body.flagged) { //view: don't return flagged memories; review: only return flagged memories
+      options.where.flagged = req.body.flagged
+    }
+
+    if(req.body.country == "World") { //special country "world" --> ignore where clause
+      options.limit = 500 
+      delete options.where.country 
+      options.order = Sequelize.literal('random()')
+    }
+
+    console.log(options)
+    
+
+    /*if(req.body.country == "World") {
       options = {
         attributes: attributes,
-        order: Sequelize.literal('random()'), limit: 500
+        order: Sequelize.literal('random()'),
+        limit: 500
       }
     } else {
       options = {
         attributes: attributes,
         where: {country: req.body.country},
       }
-    }
+    }*/
+
     
     try {
       const memories = await Memory.findAll(options);
@@ -53,5 +91,4 @@ module.exports = {
       })
     }
   },
-
 }

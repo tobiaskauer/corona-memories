@@ -6,7 +6,6 @@
   "scripts": {
     "start": "nodemon src/app.js",
     "scrape": "node src/scrape.js",
-    "admin": "nodemon src/admin.js",
     "lint": "eslint src/**/*.js",
     "lint:fix": "eslint src/**/*.js  --fix",
     "seed": "node seed"
@@ -22,6 +21,7 @@
     "cors": "^2.8.5",
     "csv-parse": "^4.15.3",
     "express": "^4.17.1",
+    "express-admin": "^1.4.3",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.7",
     "sequelize": "^6.5.0",
