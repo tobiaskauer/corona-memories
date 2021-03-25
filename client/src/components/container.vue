@@ -1,7 +1,19 @@
 <template>
   <v-app>
-
     <template v-if="cases && memories && countries && mounted">
+      <!-- toggle sidebar -->
+      <div class="drawerToggle">
+        <v-btn style="background-color: white" dark large icon @click="showSidebar = !showSidebar">
+          <v-icon small color="#FA5E2D" style="margin-left: 20px">
+            <template v-if="showSidebar">
+              mdi-chevron-left
+            </template>
+            <template v-else>
+              mdi-chevron-right
+            </template>
+          </v-icon>
+        </v-btn>
+      </div>
     
     <Scrollama
       class="scrollama"
@@ -11,20 +23,21 @@
     >
 
       <!-- display intro-text and consent form -->
-      <div slot="graphic" ref="vis" class="visWrapper"> 
+      <div slot="graphic" class="visWrapper"> 
         <vis
           :cases="cases"
           :memories="memories"
           :options="visOptions"
-          :datePicker="newMemory.datepicker"
           :hashtag="activeHashtag"
-          @toggleForm="toggleForm($event)"
+          :newMemory="newMemory"
+          @pickDate="pickDate($event)"
           @showMemory="showMemory" />
+          <!--@toggleForm="toggleForm($event)"-->
       </div>
 
-        <div class="introWrapper" data-step="1">  
+        <div class="introWrapper" :class="{hidden: !showSidebar}" data-step="1">  
           <h1>corona<br /><span>memories</span></h1>
-          <p class="larger"> Numbers do not tell stories. <strong>People do.</strong></p>
+          <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
           <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <a href="#">information letter</a> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn color="primary" outlined @click="giveConsent">
@@ -34,10 +47,10 @@
         </div>
 
         <!-- wrapper that controls progress of appearing memory bubbles -->
-        <div class="animatorWrapper" data-step="2"></div> 
+        <div class="animatorWrapper" data-step="2"></div>
 
         <!-- display exploration controls and trigger submission form -->
-        <div v-if="consent" id="target" class="explorationWrapper" data-step="3"> 
+        <div v-if="consent" id="progressTarget" class="explorationWrapper"  :class="{hidden: !showSidebar}" data-step="3"> 
           <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries and/or hashtags to filter.</p>
           <v-select
             :items="countries"
@@ -55,28 +68,30 @@
               @click="filterMemories(hashtag.tag)">{{hashtag.tag}} </v-chip>
           </p>
         </div>
+
+        <!-- submission form (default: hidden) -->
+        <div v-if="consent" id="addTarget" class="formWrapper" data-step="4">
+          <memoryForm
+            v-if="newMemory.showForm"
+            :date="newMemory.date"
+            :country="currentCountry"
+            :countries="countries"
+            :hashtags="hashtags"
+            @pickDate="pickDate($event)"
+            @close="toggleForm(false)"/>
+      </div>
     </Scrollama>
 
     <!-- call to action button -->
     <div class="callToActionWrapper" v-if="consent && currentStepId > 1">
-      <v-btn color="primary" outlined elevation="2" @click="toggleDatepicker">
-        <template v-if="!newMemory.datepicker">
+      <v-btn color="primary" outlined elevation="2" @click="toggleForm">
+        <template v-if="!newMemory.showForm">
           <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story
         </template>
         <template v-else>
           <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
         </template>
       </v-btn>
-    </div>
-
-    <!-- submission form (default: hidden) -->
-    <div class="formWrapper" v-if="newMemory.showForm">
-      <memoryForm
-        :date="newMemory.date"
-        :country="currentCountry"
-        :countries="countries"
-        :hashtags="hashtags"
-        @close="toggleForm(false)"/>
     </div>
 
     <!-- display single memory (default: hidden) -->
@@ -86,7 +101,7 @@
         @close="showMemory(false)"
         @previous="changeMemory('previous')"
         @next="changeMemory('next')"
-        @delete="deleteMemory"/>
+        @delete="hideMemory"/>
     </div>
   </template>
 
@@ -113,6 +128,7 @@ import Scrollama from 'vue-scrollama'
 import * as d3 from 'd3'
 
 
+
 //get services for API connectivity
 import caseService from '@/services/caseService'
 import memoryService from '@/services/memoryService'
@@ -122,7 +138,6 @@ import memoryForm from './memoryForm'
 import memoryDisplay from './memoryDisplay'
 import counter from './counter'
 import vis from './vis'
-
 
 export default {
   name: 'App',
@@ -136,6 +151,9 @@ export default {
 
   data () {
     return {
+
+      //initial settings and display iotions
+      showSidebar: true,
       mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
       consent: true, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
@@ -144,21 +162,28 @@ export default {
       hashtags: null, //ranked list of present hashtags to be filled by watching memories
       activeHashtag: null, //String of active hashtag (to filter memories)
 
+      parseDate: d3.utcParse("%Y-%m-%d"),
+
+      //settings for visualization
       visOptions: { //all settings that need to be passed to vis-component
-        dimensions: {width: 0, height: 0, top: 100, right: 100, bottom: 0, left: 100},
+        dimensions: {width: 0, height: 0, top: 100, right: 40, bottom: 50, left: 400},
         progess: 0, //count up to length of memories while scrolling
         overlay: false, //manual SVG overlay (to display single circle on top), istead of a vuetify one
       },
 
+      //settings for displaying memories
       displayMemory: { //all settings that need to be passed to displayMemory-component
         display: false, //initially, do not show a single memory 
         memory: null,
       },
+
+      //settings for adding a memory
       newMemory: { //all settings that need to be passed to the form that adds a new memory (or the step before: picking a date)
-        datepicker: false, //show circle (formerly line) that adds new dot
         showForm: false, //show form after clicking the dot
-        date: "" //is set when hovering line and passed to memory form
-        //date: "2020-02-23" //to quicker test form
+        date: {
+          string: "",
+          exact: true, //switch between exact and rough dates
+        }
       }
     }
   },
@@ -172,10 +197,10 @@ export default {
     },
     async memories() {
       return (await memoryService.getMemories({
-        attributes: ['date', 'author', 'exactDate', 'comment', 'weight', 'id'],
+        attributes: [['date', 'dateString'], 'exactDate', 'comment', 'weight', 'id'],
         country: this.currentCountry,
         flagged: false
-        })).data //same as above
+        })).data
     }
   },
 
@@ -193,6 +218,14 @@ export default {
       let scaleSize = d3.scaleLinear().domain(d3.extent(ranked,r=>r.occurences)).range([5,15]) //create scale for font sze of hashtags
       ranked.forEach(hashtag => hashtag.size = scaleSize(hashtag.occurences)) //assign font size to each hashtag
       this.hashtags = ranked;
+    },
+
+    showSidebar: function(showSidebar) {
+      if(showSidebar) {
+        Vue.set(this.visOptions.dimensions,'left', 400)
+      } else {
+        Vue.set(this.visOptions.dimensions,'left', 30)
+      }
     }
   },
 
@@ -218,15 +251,15 @@ export default {
     giveConsent: function() { //by clicking the "I agree"-button
       this.consent = true
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
-        this.$vuetify.goTo("#target", {duration: 2000}); //then scroll to them
+        this.$vuetify.goTo("#progressTarget", {duration: 2000}); //then scroll to them
       });
     },
 
-    showMemory: function(memory) {
-      
-      if(memory) { //is true when a memory is passed
-        Vue.set(this.memories[this.memories.findIndex(stack => stack.id == memory.id)],'active',true) //set memory active
-        Vue.set(this.displayMemory,'memory',memory)
+    showMemory: function(memoryId) {
+      if(memoryId) { //is true when a memory is passed
+        let memoryIndex = this.memories.findIndex(stack => stack.id == memoryId)
+        Vue.set(this.memories[memoryIndex],'active',true) //set memory active
+        Vue.set(this.displayMemory,'memory',this.memories[memoryIndex])
         Vue.set(this.displayMemory,'display',true)
         Vue.set(this.visOptions,'overlay',true)
       } else { //when no memory is passed
@@ -248,7 +281,7 @@ export default {
         }
     },
 
-    deleteMemory: function(payload) {
+    hideMemory: function(payload) {
       this.showMemory(false)
       Vue.delete(this.memories,this.memories.findIndex(e=>e.id == payload.id))
     },
@@ -270,10 +303,6 @@ export default {
       }
     },
 
-    toggleDatepicker: function() {
-      let bool = !this.newMemory.datepicker
-      Vue.set(this.newMemory,'datepicker',bool)
-    },
 
     filterMemories: function(hashtag) {
       if(this.activeHashtag != hashtag) {
@@ -283,18 +312,32 @@ export default {
       }
     }, 
 
-    toggleForm: function(date) { //using an own method instead of inline assignment to stay sane
-      
-      if(date) {
+    toggleForm: function() { //using an own method instead of inline assignment to stay sane
+      if(!this.newMemory.showForm) {
+        Vue.set(this.newMemory,"showForm", true)
+       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
+          this.$vuetify.goTo("#addTarget", {duration: 2000}); //then scroll to them
+        })
+      } else {
+        Vue.set(this.newMemory,"showForm", false)
+        this.$vuetify.goTo("#progressTarget", {duration: 500}); //then scroll to them
+      }
+      /*if(date) {
         Vue.set(this.newMemory,'date',date)
-        Vue.set(this.newMemory,'datepicker',false)
+        Vue.set(this.newMemory,'datepicker',true)
         Vue.set(this.newMemory,'showForm',true)
         this.overlay = true
       } else {
         Vue.set(this.newMemory,'showForm',false)
+        Vue.set(this.newMemory,'datapicker',false)
         this.overlay = false
-      }
+      }*/
     },
+
+    pickDate: function(event) {
+      Vue.set(this.newMemory.date,'string',event.string)
+      Vue.set(this.newMemory.date,'exact',event.exact)
+    }
   }
 }
 </script>
@@ -304,20 +347,29 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;900&display=swap');
 
-.introWrapper, .explorationWrapper, .animatorWrapper  {
+.introWrapper, .explorationWrapper, .animatorWrapper, .formWrapper {
   //border: 1px dotted black;
   height: 100vh;
   padding-top: 10px;
-  padding: 20px 0px 50px 30px;
+  padding: 40px 0px 50px 20px;
+  width: 400px;
+}
+
+.hidden {
+   margin-left: -400px !important;
+  padding-right: 400px !important;
+}
+
+.drawerToggle {
+  position: fixed;
+  z-index: 999;
+  left: -25px;
 }
 
 .scrollama {
-  width: 40%;
-  
-  min-width: 200px;
-  max-width: 400px;
   font-family: 'Roboto Slab', serif;
   pointer-events: none;
+  
 }
 
 button, .v-input {
@@ -325,7 +377,7 @@ button, .v-input {
 }
 
 h1{
-  margin: 30px 0 10px 0px;
+  margin: 10px 0 10px 0px;
   //height: 100px;
   //position: fixed;
   font-family: 'Roboto Slab', serif;
@@ -365,15 +417,18 @@ p.smaller {
   position: absolute;
   width: 100%;
   left: 0;
-  height: 100%;
+  height: 100%;  
+}
+.formWrapper {
+  margin-bottom: 100vh;
+}
+.hashtags, .visWrapper, .formWrapper {
   pointer-events: all;
 }
 
 .hashtags {
-  pointer-events: all;
   line-height: 100%;
 }
-
 
 #app {
   background: #FFEBC6;
