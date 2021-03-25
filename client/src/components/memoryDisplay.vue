@@ -28,7 +28,7 @@
             </v-col>
             <v-col>
               <p style="font-size:.8em; font-family: monospace; margin-bottom: 0">
-                <span v-if="memory.author"> {{memory.author}}</span><span v-else><em>anonymous</em></span>,
+                <!--<span v-if="memory.author"> {{memory.author}}</span><span v-else><em>anonymous</em></span>,-->
                 {{displayDate}}
               </p>
               <p>{{memory.comment}}</p>

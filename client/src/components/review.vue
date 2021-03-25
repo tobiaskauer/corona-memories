@@ -41,7 +41,7 @@
           </v-dialog>
         </v-toolbar>
       </template>
-       <template v-slot:item.action="{ item }">
+       <template v-slot:item.reapprove="{ item }">
          <v-btn icon @click="openDialog(item)">
         <v-icon
           small
@@ -74,7 +74,7 @@ Vue.use(AsyncComputed)
 export default {
   data () {
     return {
-      headers: ["id", "updatedAt",  "author", "comment", "date", "action"].map(e=>{return{text: e, 	value: e}}),
+      headers: ["id", "updatedAt",  "author", "comment", "date", "reapprove"].map(e=>{return{text: e, 	value: e}}),
       memories: [],
 
 			counter: 0,

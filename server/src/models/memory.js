@@ -3,12 +3,11 @@ module.exports = (sequelize, DataTypes) =>
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
-      allowNull: false,
       primaryKey: true,
     },
-    author: {
+    /*author: {
       type: DataTypes.STRING,
-    },
+    },*/
     comment: {
       type: DataTypes.STRING,
     },

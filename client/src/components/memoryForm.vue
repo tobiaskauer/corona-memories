@@ -1,31 +1,52 @@
 <template>
-  <v-overlay>
     <v-card
       elevation="2"
       max-width="500"
       min-width="400"
+      id="top"
       light
       class="mx-auto">
-      <v-card-text v-if="status">
-        <v-alert
+
+      
+      <v-card-text v-if="returnID" style="padding-top: 0px">
+        <v-card-title class="ma-0" style="padding-left: 0">
+          Your story has been recorded.
+          <v-spacer></v-spacer>
+           <v-btn icon @click="close">
+          <v-icon center color="lightgrey" small>mdi-close-circle</v-icon>
+        </v-btn>
+        </v-card-title>  
+        <p>
+          If you have a minute and want to help our research, please consider filling out our <a :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">survey</a>.
+        </p> 
+        <v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">Fill out Survey</v-btn>
+        <v-btn small outlined color="primary" block @click="blankify" style="margin-top: 10px;">Add another story first</v-btn>
+        
+        <!--<v-alert
           border="left"
           colored-border
           color="primary"
           elevation="2">
-          {{status}}
-        </v-alert>
-        <v-btn block color="primary" outlined @click="close()">Cool!</v-btn>
+           <a target="_blank" >this form</a>. Thank you!
+        </v-alert>-->
       </v-card-text>
-      <v-card-text v-else>
-        <!-- story form -->
-        <v-expansion-panels accordion focusable v-model="panel">
-          <v-expansion-panel>
-            <v-expansion-panel-header>(1) Add your story to the curve</v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <v-form style="padding: 10px 0">
-                <v-textarea class="ma-0p pa-0" dense outlined v-model="comment"  label="Your Story" />
-              </v-form>
-              <p v-if="hashtags && showHashtags > 0" class="hashtags">
+      <v-card-text v-else style="padding-top: 0px">
+        <v-card-title class="ma-0" style="padding-left: 0">
+          Add your story to the chart
+          <v-spacer></v-spacer>
+          <v-btn icon @click="close">
+            <v-icon center color="lightgrey" small>mdi-close-circle</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-form style="padding: 10px 0" v-model="isFormValid">
+          <v-textarea
+            class="ma-0 pa-0"
+            dense
+            outlined
+            :rules="rules.notEmpty"
+            v-model="comment"
+            label="Your Story" />
+            <p v-if="hashtags && showHashtags > 0" class="hashtags">
                 Adding these (or other) tags to your story helps others to find it <br/>
                 <v-chip
                   v-for="(hashtag, i) in hashtags.filter((e,i) => i<showHashtags).sort((a,b) => a.tag.localeCompare(b.tag))"
@@ -36,24 +57,94 @@
                   :key="'hashtag-'+i"
                  @click="addTag(hashtag.tag)">{{hashtag.tag}} </v-chip>
             <a @click="showHashtags = 20">show more</a></p>
+          <v-select
+                  :items="countries"
+                  v-model="currentCountry"
+                  dense
+                  label="Your country"
+                   outlined />
+                <!--<template v-if="!this.exactDate">
+                <v-text-field
+                  v-model="displayDate"
+                  label="Date"
+                  outlined
+                  class="ma-0"
+                  dense
+                  readonly
+                ></v-text-field>
+                </template>
+                <template  v-else>-->
+                <template>
+
+                  <v-menu
+                    v-model="datepicker"
+                    :close-on-content-click="false"
+                    :nudge-right="40"
+                    
+                    transition="scale-transition"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                      class="ma-0"
+                        v-model="displayDate"
+                        :rules="rules.notEmpty"
+                        label="Pick a date"
+                        append-icon="mdi-calendar"
+                        outlined
+                        readonly
+                        dense
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      v-model="displayDate"
+                      @input="datepicker = false"
+                    ></v-date-picker>
+                  </v-menu>
+                </template>
+                
+               <!-- <v-checkbox
+                class="ma-0"
+                  v-model="exactDate"
+                  label="Use exact date"
+                ></v-checkbox>-->
+      </v-form>
+      <v-btn
+        :disabled="!isFormValid"
+        style="margin: 10px 0"
+        block
+        color="primary"
+        outlined
+        @click="sendMemory">Send</v-btn>
+         <!--
+        <v-expansion-panels accordion focusable v-model="panel">
+          <v-expansion-panel>
+            <v-expansion-panel-header>(1) Add your story to the curve</v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-form style="padding: 10px 0">
+                <v-textarea class="ma-0p pa-0" dense outlined v-model="comment"  label="Your Story" />
+              </v-form>
+              
             </v-expansion-panel-content>
           </v-expansion-panel>
 
-          <!-- metadata form -->
+
           <v-expansion-panel>
             <v-expansion-panel-header>(2) Tell us some more</v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-form  style="padding: 10px 0">
-                <v-text-field v-model="name" dense outlined label="Name (optional)" />
                 <v-select
                   :items="countries"
                   v-model="currentCountry"
                   dense
                   label="Your country"
                    outlined />
-                <template v-if="!exactDate">
+                <template v-if="!this.date.exact">
                 <v-text-field
-                  v-model="roughDate"
+                  v-model="displayDate"
                   label="Date"
                   outlined
                   class="ma-0"
@@ -82,8 +173,8 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      v-model="stringDate"
-                    @input="datepicker = false"
+                      v-model="displayDate"
+                      @input="datepicker = false"
                     ></v-date-picker>
                   </v-menu>
                 </template>
@@ -97,12 +188,14 @@
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>        
-          <v-btn style="margin: 10px 0" block color="primary" outlined @click="sendMemory">Send</v-btn>
-          <v-btn :style="{left: '50%', transform:'translateX(-50%)'}" x-small @click="close()">cancel</v-btn>
+          
+          <v-btn :style="{left: '50%', transform:'translateX(-50%)'}" x-small @click="close()">cancel</v-btn>-->
       </v-card-text>
-    <!--<v-date-picker v-model="picker"></v-date-picker>-->
     </v-card>
-  </v-overlay>
+    
+      
+    
+
 </template>
 
 <script>
@@ -110,15 +203,22 @@ import MemoryService from '@/services/memoryService'
 export default {
   data () {
     return {
+      panel: null,
       comment: '',
       name: '',
-      status: false,
       currentCountry: null,
-      exactDate: false,
-      stringDate: null,
+      
       datepicker: false,
-      panel: 0,
       showHashtags: 0,
+      returnID: 10,
+      exactDate: null,
+      displayDate: null,
+      isFormValid: false,
+      rules: {
+        notEmpty: [
+          v => !!v || 'Please enter a memory!'
+        ]
+      }
     }
   },
 
@@ -126,27 +226,11 @@ export default {
     country: String,
     countries: Array,
     hashtags: Array,
-    date: String,
+    date: Object, //{date: {dateString: "01-01-2011", exact: false}}
   },
 
   mounted() {
-    this.stringDate = this.date
     this.currentCountry = this.country
-  },
-
-  computed: {
-    roughDate: function(){
-      if(!this.stringDate) return null
-      let parsedDate = new Date(this.stringDate)
-
-      let rough = "Late"
-      if(parsedDate.getDate() <= 20) rough = "Mid"
-      if(parsedDate.getDate() <= 10) rough = "Early"
-      let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][parsedDate.getMonth()]
-        
-      return rough+" "+month
-
-    }
   },
 
   methods: {
@@ -154,24 +238,32 @@ export default {
       this.comment = this.comment + " " + tag
 
     },
+
+    getRoughDate: function(dateString) {
+      let parsedDate = new Date(dateString)
+
+      let rough = "Late"
+      if(parsedDate.getDate() <= 20) rough = "Mid"
+      if(parsedDate.getDate() <= 10) rough = " Early"
+      let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][parsedDate.getMonth()]
+        
+      return rough+" "+month
+    },
     
     async sendMemory () {
       this.loading = true
 
       let payload = {
-        comment: this.comment,
-        date: new Date(this.date),
-        name: this.name,
-        country: this.country,
-        id: null,
-        exact: this.exactDate
+        comment: this.comment,  
+        date: new Date(this.displayDate),
+        country: this.currentCountry,
+        exact: this.date.exact
       }      
       try {
         const response = await MemoryService.sendMemory(payload)
-        
-        if(response) this.loading=false
         if(response.status == 200) {
-          this.status = "Your memory has been recorded"
+          this.returnID = response.data.id
+          this.$vuetify.goTo("#top", {duration: 500}); 
         }
 
       } catch (err) {
@@ -180,15 +272,42 @@ export default {
     },
 
     close: function() {
-      this.status = false
+      this.returnID = null
       this.$emit('close')
+    },
+
+    blankify: function() {
+      this.returnID = null
+      this.comment = "" 
     }
   },
 
   watch: {
     comment: function(newComment) {
       if(newComment.length > 2 && this.showHashtags < 10) this.showHashtags = 10
-    }
+    },
+    date: {
+      immediate: true,
+      deep: true,
+      handler() {
+        this.displayDate = this.date.string
+        this.exactDate = this.date.exact
+      }
+    },
+
+    displayDate: function() {
+      this.$emit("pickDate",{
+        string: this.displayDate,
+        exact: this.exactDate
+      })
+    },
+
+    exactDate: function() {
+      this.$emit("pickDate",{
+        string: this.displayDate,
+        exact: this.exactDate
+      })
+    },
   }
 }
 </script>
