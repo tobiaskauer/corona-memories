@@ -26,11 +26,15 @@ export default {
 
   props: {
     date: Object,
-    scales: Object,
-    parsedCases: Array,
   },
 
   computed: {
+    scales: function() {
+      return this.$store.state.scales
+    },
+    cases: function() {
+      return this.$store.state.cases
+    }
       /*displayDate: function() {
           if(!this.date) return null
           return (this.date.exact) ? this.formatDate(this.date) : this.getRoughDate(this.date)
@@ -85,7 +89,7 @@ export default {
 
     getLineElement: function(date) { //get case element from date
       let dateString = (typeof date == "string") ? date : this.formatDate(date) 
-      let valueOnMemoryDate = this.parsedCases.find(c => c.dateString == dateString)
+      let valueOnMemoryDate = this.cases.find(c => c.dateString == dateString)
       return valueOnMemoryDate ? valueOnMemoryDate : null
     },
 

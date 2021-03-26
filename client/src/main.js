@@ -5,6 +5,7 @@ import App from './App.vue'
 import vuetify from '@/plugins/vuetify' // path to vuetify export
 import review from './components/review'
 import container from './components/container'
+import store from './store'
 
 Vue.config.productionTip = false
 const router = new Router({
@@ -16,6 +17,7 @@ const router = new Router({
 
 new Vue({
   router,
+  store,
   vuetify,
   render: h => h(App),
 }).$mount('#app')
