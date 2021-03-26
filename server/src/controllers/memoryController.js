@@ -31,9 +31,8 @@ module.exports = {
 
   async flagMemory (req, res) {
     try {
-      console.log(req.body.flagged, req.body.id)
       const memory = await Memory.update({ flagged: req.body.flagged }, { where: { id: req.body.id } }); //update
-      console.log(memory)
+      
       res.send(memory) //return to client
     } catch(err) {
       res.status(400).send({

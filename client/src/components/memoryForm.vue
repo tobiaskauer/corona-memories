@@ -47,7 +47,7 @@
             v-model="comment"
             label="Your Story" />
             <p v-if="hashtags && showHashtags > 0" class="hashtags">
-                Adding these (or other) tags to your story helps others to find it <br/>
+                Add these (or other) hashtags<br/>
                 <v-chip
                   v-for="(hashtag, i) in hashtags.filter((e,i) => i<showHashtags).sort((a,b) => a.tag.localeCompare(b.tag))"
                   small
@@ -210,7 +210,7 @@ export default {
       
       datepicker: false,
       showHashtags: 0,
-      returnID: 10,
+      returnID: null,
       exactDate: null,
       displayDate: null,
       isFormValid: false,

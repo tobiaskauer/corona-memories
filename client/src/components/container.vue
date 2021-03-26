@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <template v-if="cases && memories && countries && mounted">
+      
       <!-- toggle sidebar -->
       <div class="drawerToggle">
         <v-btn style="background-color: white" dark large icon @click="showSidebar = !showSidebar">
@@ -25,17 +26,15 @@
       <!-- display intro-text and consent form -->
       <div slot="graphic" class="visWrapper"> 
         <vis
-          :cases="cases"
-          :memories="memories"
-          :options="visOptions"
-          :hashtag="activeHashtag"
+          style="z-index: 100"
+          :progress="progress"
           :newMemory="newMemory"
           @pickDate="pickDate($event)"
           @showMemory="showMemory" />
           <!--@toggleForm="toggleForm($event)"-->
       </div>
 
-        <div class="introWrapper" :class="{hidden: !showSidebar}" data-step="1">  
+        <div class="introWrapper" :class="{hidden: !showSidebar}" data-step="1" key="">  
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
@@ -51,7 +50,7 @@
 
         <!-- display exploration controls and trigger submission form -->
         <div v-if="consent" id="progressTarget" class="explorationWrapper"  :class="{hidden: !showSidebar}" data-step="3"> 
-          <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries and/or hashtags to filter.</p>
+          <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
           <v-select
             :items="countries"
             v-model="currentCountry"
@@ -65,7 +64,7 @@
               :outlined="(activeHashtag != hashtag.tag)"
               :style="{fontSize: hashtag.size+'px', margin: '2px'}"
               :key="'hashtag-'+i"
-              @click="filterMemories(hashtag.tag)">{{hashtag.tag}} </v-chip>
+              @click="activeHashtag = hashtag.tag">{{hashtag.tag}} </v-chip>
           </p>
         </div>
 
@@ -95,14 +94,14 @@
     </div>
 
     <!-- display single memory (default: hidden) -->
-    <div class="memoryWrapper" v-if="displayMemory.display">
+    <!--<div class="memoryWrapper" v-if="displayMemory.display">
       <memoryDisplay
         :memory="displayMemory.memory"
         @close="showMemory(false)"
         @previous="changeMemory('previous')"
         @next="changeMemory('next')"
         @delete="hideMemory"/>
-    </div>
+    </div>-->
   </template>
 
   <!-- loading screen if not everything has loaded yet -->
@@ -121,21 +120,12 @@
 <script>
 //get packages
 import Vue from 'vue'
-import AsyncComputed from 'vue-async-computed'
-Vue.use(AsyncComputed)
 import 'intersection-observer' // for cross-browser support
 import Scrollama from 'vue-scrollama'
-import * as d3 from 'd3'
-
-
-
-//get services for API connectivity
-import caseService from '@/services/caseService'
-import memoryService from '@/services/memoryService'
 
 //get components
 import memoryForm from './memoryForm'
-import memoryDisplay from './memoryDisplay'
+//import memoryDisplay from './memoryDisplay'
 import counter from './counter'
 import vis from './vis'
 
@@ -144,38 +134,24 @@ export default {
   components: {
     Scrollama,
     memoryForm,
-    memoryDisplay,
+    //memoryDisplay,
     counter,
     vis
   },
 
   data () {
     return {
-
-      //initial settings and display iotions
       showSidebar: true,
       mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
       consent: true, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
-      countries: null, //to be filled in mounted()
-      currentCountry: "Germany", //to be changed via select, triggers reactivity for asyncComputed memories and cases
-      hashtags: null, //ranked list of present hashtags to be filled by watching memories
-      activeHashtag: null, //String of active hashtag (to filter memories)
+      progress: 0, 
 
-      parseDate: d3.utcParse("%Y-%m-%d"),
-
-      //settings for visualization
-      visOptions: { //all settings that need to be passed to vis-component
-        dimensions: {width: 0, height: 0, top: 100, right: 40, bottom: 50, left: 400},
-        progess: 0, //count up to length of memories while scrolling
-        overlay: false, //manual SVG overlay (to display single circle on top), istead of a vuetify one
-      },
-
-      //settings for displaying memories
+ /*     //settings for displaying memories
       displayMemory: { //all settings that need to be passed to displayMemory-component
         display: false, //initially, do not show a single memory 
         memory: null,
-      },
+      },*/
 
       //settings for adding a memory
       newMemory: { //all settings that need to be passed to the form that adds a new memory (or the step before: picking a date)
@@ -188,66 +164,54 @@ export default {
     }
   },
 
-  asyncComputed: {
-    async cases() {
-      return (await caseService.getCases({
-        country: this.currentCountry,
-        metric: "relative_cases"}
-      )).data //get cases from API (make this async to keep reactivity when changing country)
+  computed: {
+    cases:      function() {return this.$store.state.cases},
+    memories:   function() {return this.$store.state.memories},
+    countries:  function() {return this.$store.state.countries},
+    hashtags:   function() {return this.$store.state.hashtags},
+
+    currentCountry: {
+      get() {
+        return this.$store.state.currentCountry
+      },
+      set(country) {
+        this.$store.dispatch('setCurrentCountry',country)
+      }
     },
-    async memories() {
-      return (await memoryService.getMemories({
-        attributes: [['date', 'dateString'], 'exactDate', 'comment', 'weight', 'id'],
-        country: this.currentCountry,
-        flagged: false
-        })).data
-    }
+
+    activeHashtag: {
+      get() {
+        return this.$store.state.activeHashtag
+      },
+      set(hashtag) {
+        if(hashtag == this.activeHashtag) { //compare new and old hashtag
+          this.$store.commit('setActiveHashtag',null) //deactivate hashtag when clicking an active one
+        } else {
+          this.$store.commit('setActiveHashtag',hashtag) //deactivate hashtag when clicking an active one
+        }
+      }
+    },
   },
 
-  watch:  {
-    memories: function(memories) {
-      let tags = memories//find all hashtags
-        .map(memory => memory.comment.match(/#[a-z]+/gi))
-        .flat()
-        .filter(tag => tag) 
-      let counted = tags.reduce((a, b) => (a[b] = (a[b] || 0) + 1, a), {}) //count occurence of single hashtags
-      let ranked = Object.keys(counted)
-        .map(tag => {return {tag: tag, occurences: counted[tag]}}) //turn into array
-        .sort((a,b) => b.occurences - a.occurences) //sort that array
-      
-      let scaleSize = d3.scaleLinear().domain(d3.extent(ranked,r=>r.occurences)).range([5,15]) //create scale for font sze of hashtags
-      ranked.forEach(hashtag => hashtag.size = scaleSize(hashtag.occurences)) //assign font size to each hashtag
-      this.hashtags = ranked;
-    },
 
+  watch:  {
     showSidebar: function(showSidebar) {
       if(showSidebar) {
-        Vue.set(this.visOptions.dimensions,'left', 400)
+        this.$store.commit('setDimensions', {left: 400})
       } else {
-        Vue.set(this.visOptions.dimensions,'left', 30)
+        this.$store.commit('setDimensions', {left: 30})
       }
     }
   },
 
   created() {
-    window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
-
   },
 
-  async mounted () {
-    this.countries = (await caseService.getCountries()).data.map(e => e.country) //get countries once when mounting (no need to to this reactive)
-    this.$nextTick(() => { //when everything has loaded
-      this.resize() //get true dimensions of containers
-      this.mounted = true; //alllow to render DOM
-    })    
+  mounted () {
+    this.mounted = true; 
   },
 
   methods: {
-    resize: function() { //get dimensions and pass to vis-component
-      Vue.set(this.visOptions.dimensions,'width',window.innerWidth) 
-      Vue.set(this.visOptions.dimensions,'height',window.innerHeight)
-    },
-
     giveConsent: function() { //by clicking the "I agree"-button
       this.consent = true
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
@@ -255,9 +219,16 @@ export default {
       });
     },
 
+
+
+
+
+
+
+
     showMemory: function(memoryId) {
       if(memoryId) { //is true when a memory is passed
-        let memoryIndex = this.memories.findIndex(stack => stack.id == memoryId)
+        let memoryIndex = this.memories.findIndex(memory => memory.id == memoryId)
         Vue.set(this.memories[memoryIndex],'active',true) //set memory active
         Vue.set(this.displayMemory,'memory',this.memories[memoryIndex])
         Vue.set(this.displayMemory,'display',true)
@@ -265,19 +236,19 @@ export default {
       } else { //when no memory is passed
         Vue.set(this.displayMemory,'display',false) //hide display component
         Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false) //find active memory, turn it back off
-        Vue.set(this.visOptions,'overlay',false) //don't show the svg overlay 
+        //Vue.set(this.visOptions,'overlay',false) //don't show the svg overlay 
       }
     },
 
     changeMemory: function(direction) {
-      let currentMemoryIndex = this.memories.findIndex(e => e.active)
+      let currentMemoryIndex = this.memories.findIndex(memory => memory.id == this.displayMemory.id)
       let futureMemoryIndex  //future index (when using buttons on didplay)
         if(direction == "next") futureMemoryIndex = currentMemoryIndex +1 
         if(direction == "previous") futureMemoryIndex = currentMemoryIndex -1 
         if(futureMemoryIndex && this.memories[futureMemoryIndex]) { //if memory with does exist
           Vue.set(this.displayMemory,'memory',this.memories[futureMemoryIndex])
-          Vue.set(this.memories[currentMemoryIndex],'active',false) //deactivate previously active memory 
-          Vue.set(this.memories[futureMemoryIndex],'active',true) //activate now active memory 
+          //Vue.set(this.fcountriesf[currentMemoryIndex],'active',false) //deactivate previously active memory 
+          //Vue.set(this.memories[futureMemoryIndex],'active',true) //activate now active memory 
         }
     },
 
@@ -286,11 +257,16 @@ export default {
       Vue.delete(this.memories,this.memories.findIndex(e=>e.id == payload.id))
     },
 
+
+
+
+
+
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
       direction //maybe we need this later
       switch(element.className) {
         case "introWrapper": 
-           Vue.set(this.visOptions,'progress',0) //math.ceil is needed elsewhere to show all memories, so let's reset counter to 0 when we scroll back to the intro
+          this.progress = 0
           break
       }
       this.currentStepId = element.dataset.step //store current step in data
@@ -299,10 +275,9 @@ export default {
     stepProgressHandler({element, progress}) { //handle scrolling with progress
       if(element.className == "animatorWrapper" && this.consent) { //if visitor has consentent AND were scrolling over the animatorWrapper
         let showElementsNumber = Math.ceil(progress * this.memories.length) //compute number of memories to show (min: 0, max: all memories)
-        Vue.set(this.visOptions,'progress',showElementsNumber) //write to reactive data
+        this.progress = showElementsNumber
       }
     },
-
 
     filterMemories: function(hashtag) {
       if(this.activeHashtag != hashtag) {
@@ -322,16 +297,6 @@ export default {
         Vue.set(this.newMemory,"showForm", false)
         this.$vuetify.goTo("#progressTarget", {duration: 500}); //then scroll to them
       }
-      /*if(date) {
-        Vue.set(this.newMemory,'date',date)
-        Vue.set(this.newMemory,'datepicker',true)
-        Vue.set(this.newMemory,'showForm',true)
-        this.overlay = true
-      } else {
-        Vue.set(this.newMemory,'showForm',false)
-        Vue.set(this.newMemory,'datapicker',false)
-        this.overlay = false
-      }*/
     },
 
     pickDate: function(event) {
