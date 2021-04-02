@@ -5,7 +5,7 @@
 				:headers="headers"
         :items="memories"
         :items-per-page="25"
-        sort-by="updatedAt"
+        sort-by="updatedAT"
         :sort-desc="true"
         class="elevation-2"
         dense
@@ -41,7 +41,10 @@
           </v-dialog>
         </v-toolbar>
       </template>
-       <template v-slot:item.reapprove="{ item }">
+      <template v-slot:item.updatedAT="{ item }">
+        {{getDate(item.updatedAT)}}
+      </template>
+      <template v-slot:item.reapprove="{ item }">
          <v-btn icon @click="openDialog(item)">
         <v-icon
           small
@@ -74,7 +77,7 @@ Vue.use(AsyncComputed)
 export default {
   data () {
     return {
-      headers: ["id", "updatedAt",  "author", "comment", "date", "reapprove"].map(e=>{return{text: e, 	value: e}}),
+      headers: ["id", "updatedAT", "comment", "reapprove"].map(e=>{return{text: e, 	value: e}}),
       memories: [],
 
 			counter: 0,
@@ -88,7 +91,8 @@ export default {
   asyncComputed: {
     async asyncMemories() {
       return (await memoryService.getMemories({
-        attributes: ["id", "updatedAt", "author", "comment", "date"],
+        attributes: ["id", "updatedAT", "comment", ],
+        //order: [["updatedAT","DESC"]], //no need to do this in query, just sort table
         flagged: true,
         })).data
     }
@@ -120,6 +124,15 @@ export default {
       } catch(err) {
         console.log(err)
       }
+    },
+
+    getDate(timestampedString) {
+      
+      let timestamp = new Date(timestampedString)
+      
+      let string = timestamp.getFullYear()+"/"+timestamp.getMonth()+"/"+timestamp.getDay()
+      return string
+
     }
   },
 

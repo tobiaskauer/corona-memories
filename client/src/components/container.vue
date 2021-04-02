@@ -26,15 +26,12 @@
       <!-- display intro-text and consent form -->
       <div slot="graphic" class="visWrapper"> 
         <vis
-          style="z-index: 100"
           :progress="progress"
           :newMemory="newMemory"
-          @pickDate="pickDate($event)"
-          @showMemory="showMemory" />
-          <!--@toggleForm="toggleForm($event)"-->
+          @pickDate="pickDate($event)" />
       </div>
 
-        <div class="introWrapper" :class="{hidden: !showSidebar}" data-step="1" key="">  
+        <div class="introWrapper" :class="{hidden: !showSidebar}" data-step="1">  
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
@@ -49,7 +46,7 @@
         <div class="animatorWrapper" data-step="2"></div>
 
         <!-- display exploration controls and trigger submission form -->
-        <div v-if="consent" id="progressTarget" class="explorationWrapper"  :class="{hidden: !showSidebar}" data-step="3"> 
+        <div v-if="consent" id="progressTarget" class="explorationWrapper" :class="{hidden: !showSidebar}" data-step="3"> 
           <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
           <v-select
             :items="countries"
@@ -93,15 +90,6 @@
       </v-btn>
     </div>
 
-    <!-- display single memory (default: hidden) -->
-    <!--<div class="memoryWrapper" v-if="displayMemory.display">
-      <memoryDisplay
-        :memory="displayMemory.memory"
-        @close="showMemory(false)"
-        @previous="changeMemory('previous')"
-        @next="changeMemory('next')"
-        @delete="hideMemory"/>
-    </div>-->
   </template>
 
   <!-- loading screen if not everything has loaded yet -->
@@ -143,7 +131,7 @@ export default {
     return {
       showSidebar: true,
       mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
-      consent: true, //only start recording after people consent
+      consent: false, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
       progress: 0, 
 
@@ -169,7 +157,6 @@ export default {
     memories:   function() {return this.$store.state.memories},
     countries:  function() {return this.$store.state.countries},
     hashtags:   function() {return this.$store.state.hashtags},
-
     currentCountry: {
       get() {
         return this.$store.state.currentCountry
@@ -197,16 +184,12 @@ export default {
   watch:  {
     showSidebar: function(showSidebar) {
       if(showSidebar) {
-        this.$store.commit('setDimensions', {left: 400})
+        this.$store.dispatch('setDimensions', {left: 400})
       } else {
-        this.$store.commit('setDimensions', {left: 30})
+        this.$store.dispatch('setDimensions', {left: 30})
       }
     }
   },
-
-  created() {
-  },
-
   mounted () {
     this.mounted = true; 
   },
@@ -218,49 +201,6 @@ export default {
         this.$vuetify.goTo("#progressTarget", {duration: 2000}); //then scroll to them
       });
     },
-
-
-
-
-
-
-
-
-    showMemory: function(memoryId) {
-      if(memoryId) { //is true when a memory is passed
-        let memoryIndex = this.memories.findIndex(memory => memory.id == memoryId)
-        Vue.set(this.memories[memoryIndex],'active',true) //set memory active
-        Vue.set(this.displayMemory,'memory',this.memories[memoryIndex])
-        Vue.set(this.displayMemory,'display',true)
-        Vue.set(this.visOptions,'overlay',true)
-      } else { //when no memory is passed
-        Vue.set(this.displayMemory,'display',false) //hide display component
-        Vue.set(this.memories[this.memories.findIndex(e => e.active)],'active',false) //find active memory, turn it back off
-        //Vue.set(this.visOptions,'overlay',false) //don't show the svg overlay 
-      }
-    },
-
-    changeMemory: function(direction) {
-      let currentMemoryIndex = this.memories.findIndex(memory => memory.id == this.displayMemory.id)
-      let futureMemoryIndex  //future index (when using buttons on didplay)
-        if(direction == "next") futureMemoryIndex = currentMemoryIndex +1 
-        if(direction == "previous") futureMemoryIndex = currentMemoryIndex -1 
-        if(futureMemoryIndex && this.memories[futureMemoryIndex]) { //if memory with does exist
-          Vue.set(this.displayMemory,'memory',this.memories[futureMemoryIndex])
-          //Vue.set(this.fcountriesf[currentMemoryIndex],'active',false) //deactivate previously active memory 
-          //Vue.set(this.memories[futureMemoryIndex],'active',true) //activate now active memory 
-        }
-    },
-
-    hideMemory: function(payload) {
-      this.showMemory(false)
-      Vue.delete(this.memories,this.memories.findIndex(e=>e.id == payload.id))
-    },
-
-
-
-
-
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
       direction //maybe we need this later
@@ -317,6 +257,8 @@ export default {
   height: 100vh;
   padding-top: 10px;
   padding: 40px 0px 50px 20px;
+  z-index: 99;
+  position: relative;
   width: 400px;
 }
 
@@ -383,6 +325,7 @@ p.smaller {
   width: 100%;
   left: 0;
   height: 100%;  
+  z-index: -999
 }
 .formWrapper {
   margin-bottom: 100vh;
@@ -396,8 +339,9 @@ p.smaller {
 }
 
 #app {
+  
   background: #FFEBC6;
   min-height: 100%;
   height: 100%;
 }
-</style>
+  </style>

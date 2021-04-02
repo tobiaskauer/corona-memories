@@ -27,7 +27,7 @@
         />
       </g>
 
-      <g v-if="hashtags && activeMemories.length <   2 && !activeHashtag && progress > beeswarm.filter(e => e.isMemory).length - 10" class="hashtags">
+      <g v-if="hashtags && activeMemories.length <   1 && !activeHashtag && progress > beeswarm.filter(e => e.isMemory).length - 10" class="hashtags">
         <g v-for="(link,i) in hashtags" :key="'label-'+i">
           <line stroke="#FA5E2D" stroke-width=".5" :x1="link.source.x" :y1="link.source.y" :x2="link.target.x" :y2="link.target.y+1" />
           <text
@@ -40,7 +40,7 @@
       </g>
     </g>
 
-  <g v-if="activeMemories">
+  <g v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
     <g v-for="(link, i) in memoryLinks" :key="'card-'+i">
       <line stroke="#FA5E2D"
         :x1="link.source.x"
@@ -48,7 +48,12 @@
         :x2="link.target.x"
         :y2="link.target.y"
         />
-      <foreignObject :width="memoryBox.width + 10" :height="memoryBox.height+10" :x="link.target.x-memoryBox.width/2" :y="link.target.y-memoryBox.height/2" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+      <foreignObject
+        :width="memoryBox.width +4"
+        :height="memoryBox.height +4"
+        :x="link.target.x-memoryBox.width/2"
+        :y="link.target.y-memoryBox.height/2"
+        requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
         <memoryCard :dimensions="memoryBox" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
       </foreignObject>
       

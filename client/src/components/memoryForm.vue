@@ -63,9 +63,9 @@
                   dense
                   label="Your country"
                    outlined />
-                <!--<template v-if="!this.exactDate">
+                <template v-if="!this.exactDate">
                 <v-text-field
-                  v-model="displayDate"
+                  :v-model="getRoughDate(displayDate)"
                   label="Date"
                   outlined
                   class="ma-0"
@@ -73,9 +73,7 @@
                   readonly
                 ></v-text-field>
                 </template>
-                <template  v-else>-->
-                <template>
-
+                <template  v-else>
                   <v-menu
                     v-model="datepicker"
                     :close-on-content-click="false"
@@ -106,11 +104,12 @@
                   </v-menu>
                 </template>
                 
-               <!-- <v-checkbox
+               
+               <!--<v-checkbox
                 class="ma-0"
                   v-model="exactDate"
                   label="Use exact date"
-                ></v-checkbox>-->
+                ></v-checkbox> -->
       </v-form>
       <v-btn
         :disabled="!isFormValid"
@@ -119,83 +118,11 @@
         color="primary"
         outlined
         @click="sendMemory">Send</v-btn>
-         <!--
-        <v-expansion-panels accordion focusable v-model="panel">
-          <v-expansion-panel>
-            <v-expansion-panel-header>(1) Add your story to the curve</v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <v-form style="padding: 10px 0">
-                <v-textarea class="ma-0p pa-0" dense outlined v-model="comment"  label="Your Story" />
-              </v-form>
-              
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-
-
-          <v-expansion-panel>
-            <v-expansion-panel-header>(2) Tell us some more</v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <v-form  style="padding: 10px 0">
-                <v-select
-                  :items="countries"
-                  v-model="currentCountry"
-                  dense
-                  label="Your country"
-                   outlined />
-                <template v-if="!this.date.exact">
-                <v-text-field
-                  v-model="displayDate"
-                  label="Date"
-                  outlined
-                  class="ma-0"
-                  dense
-                  readonly
-                ></v-text-field>
-                </template>
-                <template  v-else>
-                  <v-menu
-                    v-model="datepicker"
-                    :close-on-content-click="false"
-                    :nudge-right="40"
-                    transition="scale-transition"
-                    offset-y
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                      class="ma-0"
-                        v-model="stringDate"
-                        label="Pick a date"
-                        prepend-icon="mdi-calendar"
-                        readonly
-                        v-bind="attrs"
-                        v-on="on"
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      v-model="displayDate"
-                      @input="datepicker = false"
-                    ></v-date-picker>
-                  </v-menu>
-                </template>
-                
-                <v-checkbox
-                class="ma-0"
-                  v-model="exactDate"
-                  label="Use exact date"
-                ></v-checkbox>
-              </v-form>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels>        
-          
-          <v-btn :style="{left: '50%', transform:'translateX(-50%)'}" x-small @click="close()">cancel</v-btn>-->
       </v-card-text>
     </v-card>
     
       
-    
-
+  
 </template>
 
 <script>
@@ -207,11 +134,9 @@ export default {
       comment: '',
       name: '',
       currentCountry: null,
-      
       datepicker: false,
       showHashtags: 0,
       returnID: null,
-      exactDate: null,
       displayDate: null,
       isFormValid: false,
       rules: {
@@ -229,6 +154,13 @@ export default {
     date: Object, //{date: {dateString: "01-01-2011", exact: false}}
   },
 
+  computed: {
+    exactDate: {
+      set: function() {this.$store.commit('toggleNewMemoryExactDate')},
+      get: function() {return this.$store.state.newMemory.exactDate}
+    }
+  },
+
   mounted() {
     this.currentCountry = this.country
   },
@@ -240,6 +172,7 @@ export default {
     },
 
     getRoughDate: function(dateString) {
+      console.log(dateString)
       let parsedDate = new Date(dateString)
 
       let rough = "Late"
