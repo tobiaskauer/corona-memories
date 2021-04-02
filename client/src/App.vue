@@ -49,9 +49,4 @@ export default {
 </script>
 
 <style scoped>
-.app {
-  background: #FFEBC6;
-  min-height: 100%;
-  height: 100%;
-}
 </style>

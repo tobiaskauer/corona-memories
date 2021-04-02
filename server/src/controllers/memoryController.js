@@ -57,28 +57,15 @@ module.exports = {
       options.where.flagged = req.body.flagged
     }
 
+    if (req.body.order) {
+      options.order = req.body.order
+    }
+
     if(req.body.country == "World") { //special country "world" --> ignore where clause
       options.limit = 500 
       delete options.where.country 
       options.order = Sequelize.literal('random()')
     }
-
-    console.log(options)
-    
-
-    /*if(req.body.country == "World") {
-      options = {
-        attributes: attributes,
-        order: Sequelize.literal('random()'),
-        limit: 500
-      }
-    } else {
-      options = {
-        attributes: attributes,
-        where: {country: req.body.country},
-      }
-    }*/
-
     
     try {
       const memories = await Memory.findAll(options);

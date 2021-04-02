@@ -25,6 +25,10 @@ export default new Vuex.Store({
     
     dimensions: {width: 0, height: 0, top: 100, right: 40, bottom: 50, left: 400},
     scales: {}, //x, y, and radius
+
+    newMemory: {
+      exactDate: true
+    }
   },
 
   getters: {
@@ -82,7 +86,7 @@ export default new Vuex.Store({
         }
         return circles
       } else {
-        return null
+        return []
       } 
     }
   },
@@ -92,7 +96,6 @@ export default new Vuex.Store({
     setCurrentCountry(state, payload) {state.currentCountry = payload},
     setCountries(state,payload)       {state.countries = payload},
     setActiveHashtag(state,payload)    {state.activeHashtag = payload},
-
     setActiveMemories(state,payload) {
       let index = state.activeMemories.findIndex(id => id == payload)
       if(index === -1) { //add if it does noes exist
@@ -126,6 +129,10 @@ export default new Vuex.Store({
       let y = d3.scaleLinear().domain(yDomain).range([dimensions.height-dimensions.bottom-dimensions.top,dimensions.top])
       
       state.scales = {x: x, y: y}
+    },
+
+    toggleNewMemoryExactDate(state) {
+      state.newMemory.exactDate = !state.newMemory.exactDate
     },
 
     setHashtags(state,payload) {
