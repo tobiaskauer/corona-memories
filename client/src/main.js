@@ -4,7 +4,7 @@ Vue.use(Router)
 import App from './App.vue'
 import vuetify from '@/plugins/vuetify' // path to vuetify export
 import review from './components/review'
-import container from './components/container'
+import container from './components/zoomable-container'
 import store from './store'
 
 Vue.config.productionTip = false

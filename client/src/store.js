@@ -36,6 +36,16 @@ export default new Vuex.Store({
       return state.memories.filter(memory => state.activeMemories.includes(memory.id))
     },
 
+    caseLine: state => {
+      let lineGenerator =  d3.line().x(d => d.x).y(d => d.y)
+      let arr = state.cases.map(c => { 
+        c.x = state.scales.x(c.date)
+        c.y = state.scales.y(c.value)
+        return c;
+      })
+      return lineGenerator(arr)
+    },
+
     beeswarm: state => { 
       let fakeMemories = state.cases.map(day => { //generate some fixed invisible bubbles along the line chart (to space away real memories from line)
         return {
@@ -88,6 +98,25 @@ export default new Vuex.Store({
       } else {
         return []
       } 
+    },
+
+    memories: state => {
+      let allMemories = []
+      state.memories.forEach(memory => {
+
+        let caseIndex = state.cases.findIndex(c => c.dateString == memory.dateString) //find cases that day
+        memory.value = (caseIndex !== -1) ? state.cases[caseIndex].value : 0 //get value from there, otherwise assign 0
+        memory.isMemory = true //to compare with fake memories when building a beeswarm
+        memory.x = state.scales.x(memory.date) //get x position (based on date)
+        memory.y = state.scales.y(memory.value) //get y position (based on case numbers that day)
+        allMemories.push(memory)
+        allMemories.push({
+          fx: memory.x,
+          fy: memory.y,
+          isMemory: false
+        })
+      })
+      return allMemories
     }
   },
 
