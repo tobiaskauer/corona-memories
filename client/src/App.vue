@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import interactionService from '@/services/interactionService'
+import { nanoid } from 'nanoid'
 
 export default {
   name: 'App',
@@ -26,12 +28,11 @@ export default {
     this.$store.dispatch('setCountries')
     this.$store.dispatch('setCurrentCountry',"World")
 
-   // this.$store.dispatch('setCases',"World")
-   // this.$store.dispatch('setMemories',"World")
-    
+    this.$store.commit('setSession',nanoid())
   },
 
   mounted() {
+    interactionService.sendInteraction({session: this.$store.state.session, event: 'sessionStart'})
     this.$nextTick(() => { //when everything has loaded
       this.resize() //get true dimensions of containers
     })  

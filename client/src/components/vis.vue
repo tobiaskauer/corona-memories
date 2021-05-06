@@ -72,6 +72,7 @@
 import * as d3 from 'd3'
 import Datepicker from './datepicker.vue'
 import memoryCard from './memoryCard.vue'
+import interactionService from '@/services/interactionService'
 
 
 export default {
@@ -190,6 +191,7 @@ export default {
       }
     },
     click: function(id) {
+      interactionService.sendInteraction({session: this.$store.state.session, event: 'openMemory', element: id})
       this.$store.commit('setActiveMemories',id)
     }
   },
