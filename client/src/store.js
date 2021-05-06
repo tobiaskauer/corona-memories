@@ -10,7 +10,7 @@ let parseDate = d3.utcParse("%Y-%m-%d")
 
 export default new Vuex.Store({
   state: {
-
+    session: "", 
     countries: [], //list of country Strings
     currentCountry: "", //String of current country
 
@@ -92,6 +92,7 @@ export default new Vuex.Store({
   },
 
   mutations: {
+    setSession(state, payload)          {state.session = payload},
     setCases(state, payload)          {state.cases = payload},
     setCurrentCountry(state, payload) {state.currentCountry = payload},
     setCountries(state,payload)       {state.countries = payload},

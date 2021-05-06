@@ -110,6 +110,7 @@
 import Vue from 'vue'
 import 'intersection-observer' // for cross-browser support
 import Scrollama from 'vue-scrollama'
+import interactionService from '@/services/interactionService'
 
 //get components
 import memoryForm from './memoryForm'
@@ -196,6 +197,7 @@ export default {
 
   methods: {
     giveConsent: function() { //by clicking the "I agree"-button
+      interactionService.sendInteraction({session: this.$store.state.session, event: 'click', element: "consent"})
       this.consent = true
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
         this.$vuetify.goTo("#progressTarget", {duration: 2000}); //then scroll to them
@@ -222,9 +224,12 @@ export default {
     filterMemories: function(hashtag) {
       if(this.activeHashtag != hashtag) {
         this.activeHashtag = hashtag
+        
       } else {
         this.activeHashtag = null
       }
+      console.log("foo")
+      interactionService.sendInteraction({session: this.$store.state.session, event: 'filter', element: this.activeHashtag})
     }, 
 
     toggleForm: function() { //using an own method instead of inline assignment to stay sane

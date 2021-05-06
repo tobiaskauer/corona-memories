@@ -1,5 +1,7 @@
 const MemoryController = require('./controllers/memoryController')
 const CaseController = require('./controllers/caseController')
+const InteractionController = require('./controllers/interactionController')
+
 
 module.exports = (app) => {
   app.post('/sendMemory',MemoryController.sendMemory)
@@ -9,4 +11,6 @@ module.exports = (app) => {
 
   app.post('/getCases',CaseController.getCases)
   app.post('/getCountries',CaseController.getCountries)
+
+  app.post('/sendInteraction',InteractionController.sendInteraction)
 }
