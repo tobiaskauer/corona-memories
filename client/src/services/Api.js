@@ -4,5 +4,6 @@ export default() => {
   return axios.create({
     baseURL: 'https://corona-memories-server.herokuapp.com',
     //baseURL: 'http://localhost:8081',
+    //baseURL: 'http://localhost:40980',
   })
 }
