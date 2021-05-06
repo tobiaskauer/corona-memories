@@ -3,7 +3,7 @@
     <template v-if="cases && memories && countries && mounted">
       
       <!-- toggle sidebar -->
-      <div class="drawerToggle">
+      <!--<div class="drawerToggle">
         <v-btn style="background-color: white" dark large icon @click="showSidebar = !showSidebar">
           <v-icon small color="#FA5E2D" style="margin-left: 20px">
             <template v-if="showSidebar">
@@ -14,7 +14,7 @@
             </template>
           </v-icon>
         </v-btn>
-      </div>
+      </div>-->
     
     <Scrollama
       class="scrollama"

@@ -1,8 +1,8 @@
 import Api from '@/services/Api'
 
 export default {
-  sendMemory (comment) {
-    return Api().post("sendMemory", comment)
+  debug (payload) {
+    return Api().get("debug", payload)
   },
   
   getMemories (country) {
