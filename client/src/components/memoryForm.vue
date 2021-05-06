@@ -127,6 +127,8 @@
 
 <script>
 import MemoryService from '@/services/memoryService'
+import interactionService from '@/services/interactionService'
+
 export default {
   data () {
     return {
@@ -184,6 +186,7 @@ export default {
     },
     
     async sendMemory () {
+      interactionService.sendInteraction({session: this.$store.state.session, event: 'send', element: 'memory'})
       this.loading = true
 
       let payload = {
@@ -205,6 +208,7 @@ export default {
     },
 
     close: function() {
+      interactionService.sendInteraction({session: this.$store.state.session, event: 'close', element: 'memoryForm'})
       this.returnID = null
       this.$emit('close')
     },

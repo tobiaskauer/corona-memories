@@ -164,6 +164,8 @@ export default {
       },
       set(country) {
         this.$store.dispatch('setCurrentCountry',country)
+        interactionService.sendInteraction({session: this.$store.state.session, event: 'select-country', element: country})
+
       }
     },
 
@@ -173,16 +175,17 @@ export default {
       },
       set(hashtag) {
         if(hashtag == this.activeHashtag) { //compare new and old hashtag
+          interactionService.sendInteraction({session: this.$store.state.session, event: 'unselect-hashtag', element: hashtag})
           this.$store.commit('setActiveHashtag',null) //deactivate hashtag when clicking an active one
         } else {
+          interactionService.sendInteraction({session: this.$store.state.session, event: 'select-hashtag', element: hashtag})
           this.$store.commit('setActiveHashtag',hashtag) //deactivate hashtag when clicking an active one
         }
       }
     },
   },
 
-
-  watch:  {
+  /*watch:  {
     showSidebar: function(showSidebar) {
       if(showSidebar) {
         this.$store.dispatch('setDimensions', {left: 400})
@@ -190,7 +193,7 @@ export default {
         this.$store.dispatch('setDimensions', {left: 30})
       }
     }
-  },
+  },*/
   mounted () {
     this.mounted = true; 
   },
@@ -221,7 +224,7 @@ export default {
       }
     },
 
-    filterMemories: function(hashtag) {
+    /*filterMemories: function(hashtag) {
       if(this.activeHashtag != hashtag) {
         this.activeHashtag = hashtag
         
@@ -230,9 +233,10 @@ export default {
       }
       console.log("foo")
       interactionService.sendInteraction({session: this.$store.state.session, event: 'filter', element: this.activeHashtag})
-    }, 
+    },*/
 
     toggleForm: function() { //using an own method instead of inline assignment to stay sane
+      interactionService.sendInteraction({session: this.$store.state.session, event: (this.newMemory.showForm) ? 'hide' : 'show', element: "memoryForm"})
       if(!this.newMemory.showForm) {
         Vue.set(this.newMemory,"showForm", true)
        this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects

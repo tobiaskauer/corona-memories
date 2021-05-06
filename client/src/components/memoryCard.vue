@@ -52,6 +52,8 @@
 
 <script>
 import MemoryService from '@/services/memoryService'
+import InteractionService from '@/services/interactionService'
+
 export default {
   data () {
     return {
@@ -78,6 +80,7 @@ export default {
 
   methods: {
     close: function() {
+      InteractionService.sendInteraction({session: this.$store.state.session, event: 'close', element: this.memory.id})
         this.$store.commit('setActiveMemories',this.memory.id)
     },
 
@@ -91,6 +94,7 @@ export default {
     },
 
     async upvote(){
+      InteractionService.sendInteraction({session: this.$store.state.session, event: 'upvote', element: this.memory.id})
       try {
         MemoryService.upvoteMemory({id: this.memory.id}).then(response => {
           if(response.status == 200) this.localMemory.weight = response.data.weight
@@ -101,6 +105,7 @@ export default {
     },
 
     async report() {
+      InteractionService.sendInteraction({session: this.$store.state.session, event: 'report', element: this.memory.id})
        try {
         MemoryService.flagMemory({id: this.memory.id, flagged: true}).then(response => {
           if(response.status == 200){
