@@ -71,12 +71,12 @@
         :y2="link.target.y"
         />
       <foreignObject
-        :width="memoryBox.width +4"
-        :height="memoryBox.height +4"
-        :x="link.target.x-memoryBox.width/2"
-        :y="link.target.y-memoryBox.height/2"
+        :width="boxWidth +4"
+        :height="link.target.height +4"
+        :x="link.target.x"
+        :y="link.target.y"
         requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-        <memoryCard :dimensions="memoryBox" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
+        <memoryCard :width="boxWidth" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
       </foreignObject>
       
     </g>
@@ -108,10 +108,11 @@ export default {
       visibleHashtags: 10,
       opacity: 0.8, //circle opacity when not hoveredü
       lineGenerator: d3.line().x(d => d.x).y(d => d.y),
-      memoryBox: {
+      boxWidth: 300,
+      /*memoryBox: {
         width: 300,
         height: 150
-      }
+      }*/
     }
   },
 
@@ -136,7 +137,7 @@ export default {
       let links = []
       this.activeMemories.forEach(memory => {
         nodes.push({type: "circle", fx: memory.x, fy: memory.y})
-        nodes.push({type: "box", x: memory.x-this.memoryBox.width/2, y: memory.y-this.memoryBox.height/2, memory: memory})
+        nodes.push({type: "box", x: memory.x-this.boxWidth/2, y: memory.y-10, height: 100, memory: memory})
         links.push({source: nodes.length-2, target: nodes.length-1})
       })
       
@@ -149,10 +150,10 @@ export default {
       }
 
       //bounding box for lazy people
-      links.forEach(link => {
+      /*links.forEach(link => {
         if(link.target.y < this.memoryBox.height/2) link.target.y = this.memoryBox.height/2
         if(link.target.x < this.memoryBox.width/2) link.target.x = this.memoryBox.width/2
-      })
+      })*/
     
       return links  
     },
@@ -166,36 +167,6 @@ export default {
       })
       return this.lineGenerator(arr)
     },
-
-    hashtags: function() { //create a force-link network of memories and labels to avoid collisions
-      if(!this.beeswarm) return null
-      let nodes = []
-      let links = []
-      
-      //create node-link network of ALL bubbles (to avoid collision) and the hashtags of the most weighing memories
-      const sorted = [...this.beeswarm].sort((a,b) => b.weight - a.weight);
-      sorted.forEach(memory => {
-        nodes.push({type: "circle", fx: memory.x, fy: memory.y}) //source 
-        if(memory.hashtag && links.length < this.visibleHashtags) {     
-          nodes.push({type: "label", x: memory.x, y:memory.y, text: memory.hashtag, id: memory.id}) //target
-          links.push({source: nodes.length-2, target: nodes.length-1}) //link the two
-          
-        }
-      })
-
-      var simulation = d3.forceSimulation(nodes) //generate force directed simulation
-      .force('charge', d3.forceManyBody().strength(1))
-      .force('link', d3.forceLink().links(links)) 
-      .force('collide', d3.forceCollide(17)) //dont collide with other text labels, but be close to button.labels
-      for(let i = 0; i <= 10; i++) {
-        simulation.tick()
-      }
-
-      links.forEach(link => {
-        link.target.anchor = (link.target.x >= link.source.x) ? "start" : "end"
-      })  
-      return links
-    }
   },
 
   watch: {

@@ -27,9 +27,7 @@ export default {
     window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
     this.$store.dispatch('setCountries')
     this.$store.dispatch('setCurrentCountry',"World")
-
     this.$store.commit('setSession',nanoid())
-
     window.addEventListener('beforeunload',  this.endSession)
 
   },
