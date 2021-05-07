@@ -29,6 +29,9 @@ export default {
     this.$store.dispatch('setCurrentCountry',"World")
 
     this.$store.commit('setSession',nanoid())
+
+    window.addEventListener('beforeunload',  this.endSession)
+
   },
 
   mounted() {
@@ -45,6 +48,10 @@ export default {
           height: window.innerHeight
         })
     },
+
+    endSession: function() {
+      interactionService.sendInteraction({session: this.$store.state.session, event: 'sessionEnd'})
+    } 
   }
 }
 </script>

@@ -180,10 +180,11 @@ export default new Vuex.Store({
       let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
       let countries = (await caseService.getCountries()).data.map(e => {
       let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories
+      let n_memories = (index !== -1) ? countryMemories[index].n_memories : 0
       
         return {
           name: e.country,
-          n_memories: (index !== -1) ? countryMemories[index].n_memories : 0
+          n_memories: (e.country != "World") ? n_memories : countryMemories.map(country => country.n_memories).reduce((prev, next) => prev + next)
         } 
       }) //get _ALL_ countries once when mounting (no need to to this reactive)
       
