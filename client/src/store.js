@@ -177,8 +177,19 @@ export default new Vuex.Store({
     },
 
     async setCountries (context) {
-      //let countries = (await caseService.getCountries()).data.map(e => e.country) //get countries once when mounting (no need to to this reactive)
-      let countries = ['World','Germany','France','Italy','United States','United Kingdom','Switzerland']
+      let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
+      let countries = (await caseService.getCountries()).data.map(e => {
+      let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories
+      
+        return {
+          name: e.country,
+          n_memories: (index !== -1) ? countryMemories[index].n_memories : 0
+        } 
+      }) //get _ALL_ countries once when mounting (no need to to this reactive)
+      
+
+      //let countries = ['World','Germany','France','Italy','United States','United Kingdom','Switzerland']
+      console.log(countries.sort((a,b) => b.n_memories - a.n_memories))
       context.commit('setCountries',countries)
     },
 

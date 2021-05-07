@@ -1,4 +1,6 @@
 const {Case} = require('../models')
+const { Sequelize } = require('sequelize');
+
 
 module.exports = {
   async getCases (req, res) {
@@ -23,11 +25,12 @@ module.exports = {
 
   async getCountries (req, res) {
     try {
-      const cases = await Case.findAll({
+      const countries = await Case.findAll({
         attributes: ['country'],
         group: ['country']
       });
-      res.send(cases)
+
+      res.send(countries)
     } catch (err) {
       console.log(err)
       res.status(500).send({

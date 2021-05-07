@@ -7,6 +7,7 @@ module.exports = {
     try {
       const memory = await Memory.create(req.body) //write to sql based on pre-defined model
       res.send(memory.toJSON())
+      console.log(memory)
     } catch(err) {
       res.status(400).send({
         error: 'there was a problem, diggi'
@@ -34,6 +35,24 @@ module.exports = {
       const memory = await Memory.update({ flagged: req.body.flagged }, { where: { id: req.body.id } }); //update
       
       res.send(memory) //return to client
+    } catch(err) {
+      res.status(400).send({
+        error: 'there was a problem, diggi'
+      })    
+      console.log(err)
+    }
+  },
+
+  async countryMemories (req, res) {
+    try {
+      
+      const countries = await Memory.findAll({
+        attributes: ['country',[Sequelize.fn('COUNT', Sequelize.col("country")), "n_memories"]],
+        group: ['country'],
+        order: [[Sequelize.literal('n_memories'), 'DESC']]
+      });
+
+      res.send(countries)
     } catch(err) {
       res.status(400).send({
         error: 'there was a problem, diggi'

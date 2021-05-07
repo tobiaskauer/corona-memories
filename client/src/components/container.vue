@@ -28,6 +28,8 @@
         <vis
           :progress="progress"
           :newMemory="newMemory"
+          :consent="consent"
+          @demoClick="highlightConsent"
           @pickDate="pickDate($event)" />
       </div>
 
@@ -36,10 +38,11 @@
           <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
           <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <a href="#">information letter</a> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
-            <v-btn color="primary" outlined @click="giveConsent">
+            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="giveConsent">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
             </v-btn>
+            <p v-if="clickedDemo && !consent">Please consent first before you start exploring</p>
         </div>
 
         <!-- wrapper that controls progress of appearing memory bubbles -->
@@ -135,6 +138,7 @@ export default {
       consent: false, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
       progress: 0, 
+      clickedDemo: false,
 
  /*     //settings for displaying memories
       displayMemory: { //all settings that need to be passed to displayMemory-component
@@ -156,7 +160,14 @@ export default {
   computed: {
     cases:      function() {return this.$store.state.cases},
     memories:   function() {return this.$store.state.memories},
-    countries:  function() {return this.$store.state.countries},
+    countries:  function() {
+      return this.$store.state.countries.map(country => {
+        return {
+          text: country.name + " (" + country.n_memories + ")",
+          value: country.name
+        }
+      })
+    },
     hashtags:   function() {return this.$store.state.hashtags},
     currentCountry: {
       get() {
@@ -205,6 +216,11 @@ export default {
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
         this.$vuetify.goTo("#progressTarget", {duration: 2000}); //then scroll to them
       });
+    },
+
+    highlightConsent: function() { //highlight consent button when clicking demo content
+       this.clickedDemo = true
+
     },
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
