@@ -3,8 +3,8 @@
     class="memoryCard overflow-y-auto"
     elevation="2"
     v-if="memory"
-    :width="dimensions.width"
-    :max-height="dimensions.height"
+    :width="width"
+    :max-height="height"
   >
     <div>
       <v-btn style="position: absolute; right: 5px; top: 0px;" icon @click="close">
@@ -31,7 +31,7 @@
             {{memory.dateString}}
           </p>
 
-          <p class="comment">{{memory.comment}}</p>  
+          <p ref="comment" class="comment">{{memory.comment}}</p>  
             
 
           
@@ -64,17 +64,27 @@ export default {
 
   props: {
       memory: Object,
-      dimensions: Object,
+      width: Number,
+      height: Number,
   },
 
   created() {
       this.weight = this.memory.weight
   },
 
+  mounted() {
+    this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
+      console.log(this.commentHeight)
+    })
+  },
+
   computed: {
     localMemory: function() {
       if(!this.memory) return null
       return this.memory
+    },
+    commentHeight: function() {
+      return this.$refs.comment.clientHeight
     }
   },
 

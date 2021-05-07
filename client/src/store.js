@@ -190,7 +190,7 @@ export default new Vuex.Store({
       
 
       //let countries = ['World','Germany','France','Italy','United States','United Kingdom','Switzerland']
-      console.log(countries.sort((a,b) => b.n_memories - a.n_memories))
+      countries.sort((a,b) => b.n_memories - a.n_memories)
       context.commit('setCountries',countries)
     },
 
