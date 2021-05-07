@@ -12,6 +12,7 @@ module.exports = (app) => {
   app.post('/getMemories',MemoryController.getMemories)
   app.post('/upvoteMemory',MemoryController.upvoteMemory)
   app.post('/flagMemory',MemoryController.flagMemory)
+  app.post('/countryMemories',MemoryController.countryMemories)
 
   app.post('/getCases',CaseController.getCases)
   app.post('/getCountries',CaseController.getCountries)

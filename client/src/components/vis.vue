@@ -3,6 +3,11 @@
     <!-- axes and baseline chart -->
     <g class="axis xAxis" v-axis:x="scales" :transform="`translate(0,${dimensions.height-dimensions.top-dimensions.bottom+10})`"></g>
     <g class="axis yAxis" v-axis:y="scales" :transform="`translate(${dimensions.width-dimensions.right})`"></g> 
+    <text :transform="`translate(${dimensions.width-dimensions.right+10},${dimensions.top})`" opacity=".5" text-anchor="end" font-size=".5em">
+      <tspan x="0">rolling average</tspan>
+      <tspan x="0" dy="1.2em">of new cases</tspan>
+      <tspan x="0" dy="1.2em">per 100.000</tspan>
+    </text>
     <path
       :d="caseLine"
       stroke-width="3"
@@ -11,7 +16,25 @@
       stroke="black"/>
     
     <!-- beeswarm plot and hashtag network -->
-    <g class="beeswarm" v-if="beeswarm">
+    <g class="beeswarm" v-if="beeswarm[0]">
+      <g class="tutorial" v-if="!consent && progress < 1">
+        <rect width="200" height="50" fill="rgba(254,232,194,.7)" :x="beeswarm[0].x-255" :y="beeswarm[0].y-75" />
+        <line stroke="#FA5E2D" stroke-width=".5" :x1="beeswarm[0].x-5" :y1="beeswarm[0].y-5" :x2="beeswarm[0].x-50" :y2="beeswarm[0].y-50" />
+        <text
+          :y="beeswarm[0].y-50"
+          @click="$emit('demoClick')"
+          font-size=".8em"
+          text-anchor="end">
+            <tspan :x="beeswarm[0].x-55">A dot is a person's memory.</tspan>
+            <tspan dy="1.2em" :x="beeswarm[0].x-55">Click to read them.</tspan>
+        </text>
+        <path 
+          :d="beeswarm[0].d"
+          :transform="`translate(${beeswarm[0].x},${beeswarm[0].y})`" 
+          :opacity="opacity"
+          @click="$emit('demoClick')"
+        />
+      </g>
       <g class="circles">
       <path
         v-for="circle in beeswarm.filter((e,i) => i < progress && e.isMemory)" :key="'circle-'+circle.id"
@@ -19,7 +42,6 @@
         :transform="`translate(${circle.x},${circle.y})`"
         :id="'circle-'+circle.id"
         :opacity="opacity"
-        
         :class="{inactive: (activeHashtag && activeHashtag != circle.hashtag)}"
         @click="click(circle.id)"
         @mouseover="hover(circle,$event)"
@@ -27,7 +49,7 @@
         />
       </g>
 
-      <g v-if="hashtags && activeMemories.length <   1 && !activeHashtag && progress > beeswarm.filter(e => e.isMemory).length - 10" class="hashtags">
+      <!--<g v-if="hashtags && activeMemories.length <   1 && !activeHashtag && progress > beeswarm.filter(e => e.isMemory).length - 10" class="hashtags">
         <g v-for="(link,i) in hashtags" :key="'label-'+i">
           <line stroke="#FA5E2D" stroke-width=".5" :x1="link.source.x" :y1="link.source.y" :x2="link.target.x" :y2="link.target.y+1" />
           <text
@@ -37,7 +59,7 @@
             :y="link.target.y"
             @click="click(link.target.id)">{{link.target.text}}</text>
         </g>
-      </g>
+      </g>-->
     </g>
 
   <g v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
@@ -96,6 +118,7 @@ export default {
   props: {
     progress: Number,
     newMemory: Object,
+    consent: Boolean
   },
 
   computed: {

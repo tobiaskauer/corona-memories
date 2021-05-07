@@ -1,8 +1,8 @@
 import Api from '@/services/Api'
 
 export default {
-  debug (payload) {
-    return Api().get("debug", payload)
+  sendMemory (comment) {
+    return Api().post("sendMemory", comment)
   },
   
   getMemories (country) {
@@ -16,5 +16,9 @@ export default {
   flagMemory (body) {
     console.log("Service: ", body)
     return Api().post("flagMemory", body)
+  },
+
+  countryMemories () {
+    return Api().post("countryMemories")
   },
 }

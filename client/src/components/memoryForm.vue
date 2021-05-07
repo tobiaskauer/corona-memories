@@ -185,7 +185,7 @@ export default {
       return rough+" "+month
     },
     
-    async sendMemory () {
+    async sendMemory() {
       interactionService.sendInteraction({session: this.$store.state.session, event: 'send', element: 'memory'})
       this.loading = true
 
@@ -203,6 +203,7 @@ export default {
         }
 
       } catch (err) {
+        console.log(err)
         this.status = err.response.data.error
       }
     },
