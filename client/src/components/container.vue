@@ -66,6 +66,9 @@
               :key="'hashtag-'+i"
               @click="activeHashtag = hashtag.tag">{{hashtag.tag}} </v-chip>
           </p>
+          <v-btn color="primary" outlined elevation="2" @click="toggleForm">
+            <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story
+          </v-btn>
         </div>
 
         <!-- submission form (default: hidden) -->
@@ -82,7 +85,7 @@
     </Scrollama>
 
     <!-- call to action button -->
-    <div class="callToActionWrapper" v-if="consent && currentStepId > 1">
+    <!--<div class="callToActionWrapper" v-if="consent && currentStepId > 1">
       <v-btn color="primary" outlined elevation="2" @click="toggleForm">
         <template v-if="!newMemory.showForm">
           <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story
@@ -91,7 +94,7 @@
           <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
         </template>
       </v-btn>
-    </div>
+    </div>-->
 
   </template>
 
@@ -139,12 +142,6 @@ export default {
       currentStepId: 0, //what part of the page are we in?
       progress: 0, 
       clickedDemo: false,
-
- /*     //settings for displaying memories
-      displayMemory: { //all settings that need to be passed to displayMemory-component
-        display: false, //initially, do not show a single memory 
-        memory: null,
-      },*/
 
       //settings for adding a memory
       newMemory: { //all settings that need to be passed to the form that adds a new memory (or the step before: picking a date)
