@@ -17,7 +17,7 @@
         </v-btn>
         </v-card-title>  
         <p>
-          If you have a minute and want to help our research, please consider filling out our <a :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">survey</a>.
+          <strong>It will be visible soon.</strong> In the meantime, if you have a minute and want to help our research, please consider filling out our <a :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">survey</a>.
         </p> 
         <v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">Fill out Survey</v-btn>
         <v-btn small outlined color="primary" block @click="blankify" style="margin-top: 10px;">Add another story first</v-btn>
@@ -65,11 +65,12 @@
                    outlined />
                 <template v-if="!this.exactDate">
                 <v-text-field
-                  :v-model="getRoughDate(displayDate)"
+                  v-model="roughDate"
                   label="Date"
                   outlined
                   class="ma-0"
                   dense
+                  hint="Move your mouse over the line to pick a date"
                   readonly
                 ></v-text-field>
                 </template>
@@ -78,7 +79,6 @@
                     v-model="datepicker"
                     :close-on-content-click="false"
                     :nudge-right="40"
-                    
                     transition="scale-transition"
                     offset-y
                     min-width="auto"
@@ -86,30 +86,31 @@
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
                       class="ma-0"
-                        v-model="displayDate"
+                        v-model="date"
                         :rules="rules.notEmpty"
                         label="Pick a date"
                         append-icon="mdi-calendar"
                         outlined
                         readonly
+                        
                         dense
                         v-bind="attrs"
                         v-on="on"
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      v-model="displayDate"
+                      v-model="date"
                       @input="datepicker = false"
                     ></v-date-picker>
                   </v-menu>
                 </template>
                 
                
-               <!--<v-checkbox
+               <v-checkbox
                 class="ma-0"
                   v-model="exactDate"
                   label="Use exact date"
-                ></v-checkbox> -->
+                ></v-checkbox> 
       </v-form>
       <v-btn
         :disabled="!isFormValid"
@@ -128,6 +129,7 @@
 <script>
 import MemoryService from '@/services/memoryService'
 import interactionService from '@/services/interactionService'
+import * as d3 from 'd3'
 
 export default {
   data () {
@@ -135,11 +137,13 @@ export default {
       panel: null,
       comment: '',
       name: '',
-      currentCountry: null,
+      parseDate: d3.utcParse("%Y-%m-%d"),
+      formatDate: d3.timeFormat("%Y-%m-%d"),
       datepicker: false,
       showHashtags: 0,
+      showDatehelp: false,
+      roughDate: "foobar",
       returnID: null,
-      displayDate: null,
       isFormValid: false,
       rules: {
         notEmpty: [
@@ -151,20 +155,68 @@ export default {
 
   props: {
     country: String,
-    countries: Array,
-    hashtags: Array,
-    date: Object, //{date: {dateString: "01-01-2011", exact: false}}
+    
   },
 
   computed: {
+    hashtags:   function() {
+      let hashtags = this.$store.state.hashtags
+      
+      if(hashtags.length == 0) hashtags = ["lockdown", "stayhome", "socialdistancing", "quarantine", "rip"].map(tag => {return {occurences: 0, size: 10, tag: "#"+tag}})
+      
+      return hashtags
+    },
+    countries:  function() {
+      return this.$store.state.countries.map(country => {
+        return {
+          text: (country.name == "World") ? "(Select your country)" : country.name,
+          value: country.name,
+          disabled: (country.name == "World") ? true : false
+        }
+      })
+    },
+
+    currentCountry: {
+      get() {
+        return this.$store.state.currentCountry
+      },
+      set(country) {
+        this.$store.dispatch('setCurrentCountry',country)
+        interactionService.sendInteraction({event: 'select-country', element: country})
+
+      }
+    },
+
     exactDate: {
       set: function() {this.$store.commit('toggleNewMemoryExactDate')},
       get: function() {return this.$store.state.newMemory.exactDate}
+    },
+
+    date: {
+      set: function(newDate) {this.$store.commit('setNewMemoryDate',this.parseDate(newDate))},
+      get: function() {return this.formatDate(this.$store.state.newMemory.date)}
+    },
+
+    /*roughDate: {
+      get: function() {
+      console.log(this.time)
+      return this.getRoughDate(this.time)
     }
+    },*/
+    
+
+    displayDate: {
+      set: function(newDate) {console.log(newDate)/*,this.date = this.formatDate(newDate)*/},
+      get: function() {return (this.exactDate) ? this.formatDate(this.date) : this.getRoughDate(this.date)}
+    },
+
+
   },
 
+  
+
   mounted() {
-    this.currentCountry = this.country
+    
   },
 
   methods: {
@@ -174,32 +226,41 @@ export default {
     },
 
     getRoughDate: function(dateString) {
-      console.log(dateString)
+      
       let parsedDate = new Date(dateString)
 
       let rough = "Late"
       if(parsedDate.getDate() <= 20) rough = "Mid"
-      if(parsedDate.getDate() <= 10) rough = " Early"
+      if(parsedDate.getDate() <= 10) rough = "Early"
       let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][parsedDate.getMonth()]
-        
-      return rough+" "+month
+  
+      return rough+" "+month + " " + parsedDate.getFullYear()
     },
     
     async sendMemory() {
-      interactionService.sendInteraction({session: this.$store.state.session, event: 'send', element: 'memory'})
+      interactionService.sendInteraction({event: 'sendMemory'})
       this.loading = true
+
+      
 
       let payload = {
         comment: this.comment,  
-        date: new Date(this.displayDate),
+        date: new Date(this.date),
+        hash: this.$store.state.session.hash,
         country: this.currentCountry,
-        exact: this.date.exact
+        exactDate: this.exactDate
       }      
+      
+      
       try {
         const response = await MemoryService.sendMemory(payload)
         if(response.status == 200) {
+          this.$store.commit("toggleNewMemoryDatepicker", false)
+          this.$store.dispatch("setMemories")
+
           this.returnID = response.data.id
           this.$vuetify.goTo("#top", {duration: 500}); 
+          
         }
 
       } catch (err) {
@@ -209,7 +270,7 @@ export default {
     },
 
     close: function() {
-      interactionService.sendInteraction({session: this.$store.state.session, event: 'close', element: 'memoryForm'})
+      this.$store.commit("toggleNewMemoryDatepicker", false)
       this.returnID = null
       this.$emit('close')
     },
@@ -217,6 +278,7 @@ export default {
     blankify: function() {
       this.returnID = null
       this.comment = "" 
+      this.$store.commit("toggleNewMemoryDatepicker", true)
     }
   },
 
@@ -228,12 +290,13 @@ export default {
       immediate: true,
       deep: true,
       handler() {
-        this.displayDate = this.date.string
-        this.exactDate = this.date.exact
+        this.roughDate = this.getRoughDate(this.date)
+        //this.displayDate = this.date.string
+        //this.exactDate = this.date.exact
       }
     },
 
-    displayDate: function() {
+    /*displayDate: function() {
       this.$emit("pickDate",{
         string: this.displayDate,
         exact: this.exactDate
@@ -245,7 +308,7 @@ export default {
         string: this.displayDate,
         exact: this.exactDate
       })
-    },
+    },*/
   }
 }
 </script>

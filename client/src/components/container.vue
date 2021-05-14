@@ -1,101 +1,113 @@
 <template>
   <v-app>
     <template v-if="cases && memories && countries && mounted">
-      
-      <!-- toggle sidebar -->
-      <!--<div class="drawerToggle">
-        <v-btn style="background-color: white" dark large icon @click="showSidebar = !showSidebar">
-          <v-icon small color="#FA5E2D" style="margin-left: 20px">
-            <template v-if="showSidebar">
-              mdi-chevron-left
-            </template>
-            <template v-else>
-              mdi-chevron-right
-            </template>
-          </v-icon>
-        </v-btn>
-      </div>-->
     
     <Scrollama
       class="scrollama"
       :progress="true"
+      :debug="false"
       @step-enter="stepEnterHandler"
       @step-progress="stepProgressHandler"
     >
 
-      <!-- display intro-text and consent form -->
-      <div slot="graphic" class="visWrapper"> 
+
+
+
+
+
+
+
+      <!-- TESTPATH: DATA -- DISCOURSE -- QUESTION -->
+      <template v-if="testPath == 'data-discourse-question'">
+        <div slot="graphic" class="visWrapper"> 
         <vis
           :progress="progress"
-          :newMemory="newMemory"
           :consent="consent"
-          @demoClick="highlightConsent"
-          @pickDate="pickDate($event)" />
+          @demoClick="highlightConsent" />
       </div>
 
-        <div class="introWrapper" :class="{hidden: !showSidebar}" data-step="1">  
+        <div class="introWrapper" data-step="1">  
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <a href="#">information letter</a> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
-            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="giveConsent">
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
             </v-btn>
-            <p v-if="clickedDemo && !consent">Please consent first before you start exploring</p>
+            <p v-if="clickedDemo && !consent">You have to consent first.</p>
         </div>
 
-        <!-- wrapper that controls progress of appearing memory bubbles -->
-        <div class="animatorWrapper" data-step="2"></div>
+        <div class="animatorWrapper" data-step="2"></div> 
 
-        <!-- display exploration controls and trigger submission form -->
-        <div v-if="consent" id="progressTarget" class="explorationWrapper" :class="{hidden: !showSidebar}" data-step="3"> 
-          <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
-          <v-select
-            :items="countries"
-            v-model="currentCountry"
-            label="Your country"
-            outlined />
-          <p v-if="hashtags" class="hashtags">
-            <v-chip
-              v-for="(hashtag, i) in hashtags.filter((e,i) => i<10).sort((a,b) => a.tag.localeCompare(b.tag))"
-              small
-              color="primary"
-              :outlined="(activeHashtag != hashtag.tag)"
-              :style="{fontSize: hashtag.size+'px', margin: '2px'}"
-              :key="'hashtag-'+i"
-              @click="activeHashtag = hashtag.tag">{{hashtag.tag}} </v-chip>
-          </p>
-          <v-btn color="primary" outlined elevation="2" @click="toggleForm">
-            <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story
-          </v-btn>
+
+        <div v-if="consent" id="progressTarget" class="explorationWrapper" data-step="3"> 
+          <explore @toggleForm="toggleForm" />
         </div>
 
-        <!-- submission form (default: hidden) -->
-        <div v-if="consent" id="addTarget" class="formWrapper" data-step="4">
+        
+        <div v-if="consent" id="addTarget" class="formWrapper" data-step="4" style="margin-bottom: 100vh;">
           <memoryForm
             v-if="newMemory.showForm"
-            :date="newMemory.date"
-            :country="currentCountry"
-            :countries="countries"
-            :hashtags="hashtags"
-            @pickDate="pickDate($event)"
             @close="toggleForm(false)"/>
       </div>
+      </template>
+
+
+
+
+
+
+
+
+   <!-- TESTPATH: DATA -- QUESTION -- DISCOURSE -->
+      <template v-else-if="testPath == 'data-question-discourse'">
+        <div slot="graphic" class="visWrapper"> 
+        <vis
+          :progress="progress"
+          :consent="consent"
+          @demoClick="highlightConsent" />
+      </div>
+
+        <div class="introWrapper" data-step="1">  
+          <h1>corona<br /><span>memories</span></h1>
+          <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
+          <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#addTarget')">
+              <v-icon small>mdi-check-circle</v-icon>
+             I agree, show me
+            </v-btn>
+            <p v-if="clickedDemo && !consent">You have to consent first.</p>
+        </div>
+        
+        
+        <div v-if="consent" id="addTarget" class="formWrapper" data-step="2">
+          <memoryForm
+            v-if="newMemory.showForm"
+            @close="toggleForm(false)"/>
+            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
+              <v-icon small>mdi-check-circle</v-icon>
+             Explore other people's stories.
+            </v-btn>
+      </div>
+
+      <div class="animatorWrapper" data-step="3"></div> 
+
+        <div v-if="consent" id="progressTarget" class="explorationWrapper" data-step="4" style="margin-bottom: 100vh;"> 
+          <explore @toggleForm="toggleForm" />
+        </div>
+      </template>
+
+
+
+
+
+
+
+
+
     </Scrollama>
-
-    <!-- call to action button -->
-    <!--<div class="callToActionWrapper" v-if="consent && currentStepId > 1">
-      <v-btn color="primary" outlined elevation="2" @click="toggleForm">
-        <template v-if="!newMemory.showForm">
-          <v-icon small>mdi-tooltip-plus-outline</v-icon>Add your story
-        </template>
-        <template v-else>
-          <v-icon small>mdi-close-circle-outline</v-icon>Stop adding
-        </template>
-      </v-btn>
-    </div>-->
-
   </template>
 
   <!-- loading screen if not everything has loaded yet -->
@@ -113,14 +125,13 @@
 
 <script>
 //get packages
-import Vue from 'vue'
 import 'intersection-observer' // for cross-browser support
 import Scrollama from 'vue-scrollama'
 import interactionService from '@/services/interactionService'
 
 //get components
 import memoryForm from './memoryForm'
-//import memoryDisplay from './memoryDisplay'
+import explore from './explore'
 import counter from './counter'
 import vis from './vis'
 
@@ -129,34 +140,26 @@ export default {
   components: {
     Scrollama,
     memoryForm,
-    //memoryDisplay,
     counter,
+    explore,
     vis
   },
 
   data () {
     return {
-      showSidebar: true,
       mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
       consent: false, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
       progress: 0, 
       clickedDemo: false,
-
-      //settings for adding a memory
-      newMemory: { //all settings that need to be passed to the form that adds a new memory (or the step before: picking a date)
-        showForm: false, //show form after clicking the dot
-        date: {
-          string: "",
-          exact: true, //switch between exact and rough dates
-        }
-      }
     }
   },
 
   computed: {
     cases:      function() {return this.$store.state.cases},
+    newMemory:   function() {return this.$store.state.newMemory},
     memories:   function() {return this.$store.state.memories},
+    testPath:   function() {return this.$store.state.session.path},
     countries:  function() {
       return this.$store.state.countries.map(country => {
         return {
@@ -165,106 +168,80 @@ export default {
         }
       })
     },
-    hashtags:   function() {return this.$store.state.hashtags},
-    currentCountry: {
-      get() {
-        return this.$store.state.currentCountry
-      },
-      set(country) {
-        this.$store.dispatch('setCurrentCountry',country)
-        interactionService.sendInteraction({session: this.$store.state.session, event: 'select-country', element: country})
 
-      }
-    },
 
-    activeHashtag: {
-      get() {
-        return this.$store.state.activeHashtag
-      },
-      set(hashtag) {
-        if(hashtag == this.activeHashtag) { //compare new and old hashtag
-          interactionService.sendInteraction({session: this.$store.state.session, event: 'unselect-hashtag', element: hashtag})
-          this.$store.commit('setActiveHashtag',null) //deactivate hashtag when clicking an active one
-        } else {
-          interactionService.sendInteraction({session: this.$store.state.session, event: 'select-hashtag', element: hashtag})
-          this.$store.commit('setActiveHashtag',hashtag) //deactivate hashtag when clicking an active one
-        }
-      }
-    },
   },
-
-  /*watch:  {
-    showSidebar: function(showSidebar) {
-      if(showSidebar) {
-        this.$store.dispatch('setDimensions', {left: 400})
-      } else {
-        this.$store.dispatch('setDimensions', {left: 30})
-      }
-    }
-  },*/
+ 
   mounted () {
-    this.mounted = true; 
+    this.mounted = true;
   },
+
+
 
   methods: {
-    giveConsent: function() { //by clicking the "I agree"-button
-      interactionService.sendInteraction({session: this.$store.state.session, event: 'click', element: "consent"})
-      this.consent = true
+    enter: function(target) { //by clicking the "I agree"-button
+
+    this.consent = true
+    interactionService.sendInteraction({event: 'consent'})
+
+      switch(this.testPath) {
+        case "data-discourse-question":
+          this.explore = true;
+          break;
+        case "data-question-discourse": 
+          this.$store.commit("toggleForm",true)
+        break;
+    } 
+      
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
-        this.$vuetify.goTo("#progressTarget", {duration: 2000}); //then scroll to them
+        this.$vuetify.goTo(target, {duration: 2000}); //then scroll to them
       });
     },
 
     highlightConsent: function() { //highlight consent button when clicking demo content
        this.clickedDemo = true
-
     },
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
       direction //maybe we need this later
+      
       switch(element.className) {
         case "introWrapper": 
           this.progress = 0
           break
       }
+      if(element.className == "formWrapper") {
+        this.$store.commit("toggleNewMemoryDatepicker",true)
+      } else {
+        this.$store.commit("toggleNewMemoryDatepicker",false)
+      }
       this.currentStepId = element.dataset.step //store current step in data
     },
 
     stepProgressHandler({element, progress}) { //handle scrolling with progress
+    //console.log(element.className, this.consent)
+    
       if(element.className == "animatorWrapper" && this.consent) { //if visitor has consentent AND were scrolling over the animatorWrapper
+      
         let showElementsNumber = Math.ceil(progress * this.memories.length) //compute number of memories to show (min: 0, max: all memories)
         this.progress = showElementsNumber
       }
+      
     },
 
-    /*filterMemories: function(hashtag) {
-      if(this.activeHashtag != hashtag) {
-        this.activeHashtag = hashtag
-        
-      } else {
-        this.activeHashtag = null
-      }
-      console.log("foo")
-      interactionService.sendInteraction({session: this.$store.state.session, event: 'filter', element: this.activeHashtag})
-    },*/
-
     toggleForm: function() { //using an own method instead of inline assignment to stay sane
-      interactionService.sendInteraction({session: this.$store.state.session, event: (this.newMemory.showForm) ? 'hide' : 'show', element: "memoryForm"})
+      interactionService.sendInteraction({event: (this.newMemory.showForm) ? 'hide' : 'show', element: "memoryForm"})
       if(!this.newMemory.showForm) {
-        Vue.set(this.newMemory,"showForm", true)
+        this.$store.commit("toggleForm",true)
+        this.$store.commit("toggleNewMemoryDatepicker",true)
        this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
           this.$vuetify.goTo("#addTarget", {duration: 2000}); //then scroll to them
         })
       } else {
-        Vue.set(this.newMemory,"showForm", false)
+        this.$store.commit("toggleForm",false)
         this.$vuetify.goTo("#progressTarget", {duration: 500}); //then scroll to them
       }
     },
-
-    pickDate: function(event) {
-      Vue.set(this.newMemory.date,'string',event.string)
-      Vue.set(this.newMemory.date,'exact',event.exact)
-    }
   }
 }
 </script>
@@ -301,14 +278,12 @@ export default {
   
 }
 
-button, .v-input {
+button, .v-input, .introWrapper {
   pointer-events: all;
 }
 
 h1{
   margin: 10px 0 10px 0px;
-  //height: 100px;
-  //position: fixed;
   font-family: 'Roboto Slab', serif;
   font-weight: 400;
   font-size: 40px;
@@ -348,9 +323,6 @@ p.smaller {
   left: 0;
   height: 100%;  
   z-index: -999
-}
-.formWrapper {
-  margin-bottom: 100vh;
 }
 .hashtags, .visWrapper, .formWrapper {
   pointer-events: all;

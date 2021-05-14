@@ -38,11 +38,11 @@ if(api) {
   let populations = require('./temp/worldbank-population.json')
   let provinces = require('./temp/countries.json')
   let countries = combine(provinces)
-  //console.log(showMissingCountries(countries)) //maybe add that for later
+  showMissingCountries(countries,populations) //maybe add that for later
   countries = computeNewAndRelative(countries,populations)
   let all = createArr(countries,populations)
   //all = all.filter((d,i) => i<10000) //to test without performance issues
-  writeToSQL(all)
+  //writeToSQL(all)
 }
 
 
@@ -62,26 +62,18 @@ function writeToSQL(data) {
     }
   })
 
-  /*data = [  //demo data for testing
-    { date: new Date(), 'absolute-cases': 100, country: "bums" },
-    { date: new Date(), 'relative-cases': 2020, country: "bums" },
-    { date: new Date(), 'new-deaths': 1947, country: "bums" },
-  ]*/
- // sequelize.models.Case.bulkCreate(data)
-  /*.then(() => { // Notice: There are no arguments here, as of right now you'll have to...
-  return sequelize.models.Case.findAll({
-    where: {
-      country: "bums"
-    },
-  });
-}).then(cases => {
-  console.log(cases) // ... in order to get the array of user objects
-})*/
 }
 
 
 
+function showMissingCountries(countries,populations) {
+  //console.log(Object.keys(countries))
+  //console.log(Object.keys(populations))
 
+  Object.keys(countries).forEach(country => {
+    if(Object.keys(populations).indexOf(country) == -1) console.log(country)
+  })
+}
 
 
 function combine(provinces) {

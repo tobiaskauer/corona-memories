@@ -1,9 +1,9 @@
 <template>
-  <svg :width="dimensions.width" :height="dimensions.height" v-if="scales.x && cases && mounted">
+  <svg :width="dimensions.width" :height="dimensions.height" v-if="scales.x && cases && mounted" style="overflow: visible">
     <!-- axes and baseline chart -->
     <g class="axis xAxis" v-axis:x="scales" :transform="`translate(0,${dimensions.height-dimensions.top-dimensions.bottom+10})`"></g>
     <g class="axis yAxis" v-axis:y="scales" :transform="`translate(${dimensions.width-dimensions.right})`"></g> 
-    <text :transform="`translate(${dimensions.width-dimensions.right+10},${dimensions.top})`" opacity=".5" text-anchor="end" font-size=".5em">
+    <text :transform="`translate(${dimensions.width-dimensions.right+10},${dimensions.height-dimensions.top})`" opacity=".5" text-anchor="end" font-size=".5em">
       <tspan x="0">rolling average</tspan>
       <tspan x="0" dy="1.2em">of new cases</tspan>
       <tspan x="0" dy="1.2em">per 100.000</tspan>
@@ -30,6 +30,7 @@
         </text>
         <path 
           :d="beeswarm[0].d"
+          fill="#FA5E2D"
           :transform="`translate(${beeswarm[0].x},${beeswarm[0].y})`" 
           :opacity="opacity"
           @click="$emit('demoClick')"
@@ -41,39 +42,31 @@
         :d="circle.d"
         :transform="`translate(${circle.x},${circle.y})`"
         :id="'circle-'+circle.id"
-        :opacity="opacity"
+        
+        :opacity="(activeMemories.findIndex(memory => memory.id == circle.id) !== -1) ? 1 : opacity"
+        :fill="(activeMemories.findIndex(memory => memory.id == circle.id) !== -1) ? '#E63700' : '#FA5E2D'"
         :class="{inactive: (activeHashtag && activeHashtag != circle.hashtag)}"
         @click="click(circle.id)"
         @mouseover="hover(circle,$event)"
         @mouseout="hover(circle,$event)"
         />
       </g>
-
-      <!--<g v-if="hashtags && activeMemories.length <   1 && !activeHashtag && progress > beeswarm.filter(e => e.isMemory).length - 10" class="hashtags">
-        <g v-for="(link,i) in hashtags" :key="'label-'+i">
-          <line stroke="#FA5E2D" stroke-width=".5" :x1="link.source.x" :y1="link.source.y" :x2="link.target.x" :y2="link.target.y+1" />
-          <text
-            fill="#FA5E2D"
-            :x="link.target.x"
-            :text-anchor="link.target.anchor"
-            :y="link.target.y"
-            @click="click(link.target.id)">{{link.target.text}}</text>
-        </g>
-      </g>-->
     </g>
 
   <g v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
     <g v-for="(link, i) in memoryLinks" :key="'card-'+i">
-      <line stroke="#FA5E2D"
+      <line
+        stroke="#E63700"
         :x1="link.source.x"
         :y1="link.source.y"
-        :x2="link.target.x"
-        :y2="link.target.y"
+        :x2="link.target.x - (boxWidth / 2)"
+        :y2="link.target.y + 40"
         />
       <foreignObject
-        :width="boxWidth +4"
-        :height="link.target.height +4"
-        :x="link.target.x"
+        :width="boxWidth"
+        height="1"
+        style="overflow: visible"
+        :x="link.target.x - (boxWidth/2)"
         :y="link.target.y"
         requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
         <memoryCard :width="boxWidth" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
@@ -83,10 +76,7 @@
   </g>
 
     <!-- show datepicker element when adding new memories --> 
-    <Datepicker
-      v-if="newMemory.showForm"
-      :date="newMemory.date"
-      />
+    <Datepicker v-if="showDatepicker" />
   </svg>
 </template>
 
@@ -95,6 +85,8 @@ import * as d3 from 'd3'
 import Datepicker from './datepicker.vue'
 import memoryCard from './memoryCard.vue'
 import interactionService from '@/services/interactionService'
+
+
 
 
 export default {
@@ -108,11 +100,7 @@ export default {
       visibleHashtags: 10,
       opacity: 0.8, //circle opacity when not hoveredü
       lineGenerator: d3.line().x(d => d.x).y(d => d.y),
-      boxWidth: 300,
-      /*memoryBox: {
-        width: 300,
-        height: 150
-      }*/
+      boxWidth: 250,
     }
   },
 
@@ -129,7 +117,7 @@ export default {
     activeHashtag: function() {return this.$store.state.activeHashtag},
     scales:     function() {return this.$store.state.scales},
     activeMemories: function() {return this.$store.getters.activeMemories},
-
+    showDatepicker: function() {return this.$store.state.newMemory.datepicker},
     memoryLinks: function() {      
       if(!this.activeMemories) return null  
       
@@ -137,17 +125,18 @@ export default {
       let links = []
       this.activeMemories.forEach(memory => {
         nodes.push({type: "circle", fx: memory.x, fy: memory.y})
-        nodes.push({type: "box", x: memory.x-this.boxWidth/2, y: memory.y-10, height: 100, memory: memory})
+        nodes.push({type: "box", x: memory.x-this.boxWidth/2, y: memory.y-10, height: 0, memory: memory})
         links.push({source: nodes.length-2, target: nodes.length-1})
       })
       
       var simulation = d3.forceSimulation(nodes) //generate force directed simulation
       .force('charge', d3.forceManyBody().strength(1))
       .force('link', d3.forceLink().links(links)) 
-      .force('collide', d3.forceCollide(100)) //dont collide with other text labels, but be close to button.labels
+      .force('collide', d3.forceCollide(150)) //dont collide with other text labels, but be close to button.labels
       for(let i = 0; i <= 10; i++) {
         simulation.tick()
       }
+
 
       //bounding box for lazy people
       /*links.forEach(link => {
@@ -185,9 +174,9 @@ export default {
       }
     },
     click: function(id) {
-      interactionService.sendInteraction({session: this.$store.state.session, event: 'openMemory', element: id})
+      interactionService.sendInteraction({event: 'openMemory', element: id})
       this.$store.commit('setActiveMemories',id)
-    }
+    },
   },
 
   directives: { //axis computation
@@ -231,7 +220,6 @@ export default {
     }
 
     .beeswarm path {
-      fill: #FA5E2D;
       cursor: pointer;
     }
 
