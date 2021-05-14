@@ -4,7 +4,6 @@
     elevation="2"
     v-if="memory"
     :width="width"
-    :max-height="height"
   >
     <div>
       <v-btn style="position: absolute; right: 5px; top: 0px;" icon @click="close">
@@ -15,7 +14,15 @@
       <v-row dense>      
         <v-col>
           <p class="topBar">
-            <v-btn
+            
+            
+            <em>[anonymous], {{displayDate}}:</em>
+          </p>
+
+          <p ref="comment" class="comment">{{memory.comment}}</p>  
+            
+
+          <v-btn
               x-small 
               fab
               outlined
@@ -27,16 +34,9 @@
               {{weight}}<br />
               <v-icon color="black" small>mdi-heart</v-icon>
             </v-btn>
-            
-            {{memory.dateString}}
-          </p>
-
-          <p ref="comment" class="comment">{{memory.comment}}</p>  
-            
-
-          
           <template v-if="!status">
-            <v-btn outlined  x-small @click="report">
+            
+            <v-btn plain x-small @click="report">
               <v-icon  x-small>mdi-flag</v-icon>
               Report
             </v-btn>
@@ -65,7 +65,6 @@ export default {
   props: {
       memory: Object,
       width: Number,
-      height: Number,
   },
 
   created() {
@@ -73,9 +72,10 @@ export default {
   },
 
   mounted() {
-    this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
-      console.log(this.commentHeight)
-    })
+   /* this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
+    console.log(this.commentHeight)
+      this.$emit("adjustHeight",this.commentHeight+1000)
+    })*/
   },
 
   computed: {
@@ -83,14 +83,17 @@ export default {
       if(!this.memory) return null
       return this.memory
     },
-    commentHeight: function() {
-      return this.$refs.comment.clientHeight
+    displayDate: function() {
+      return (this.memory.exactDate) ? this.memory.dateString : this.getRoughDate(this.memory.date)
     }
+    /*commentHeight: function() {
+      return this.$refs.comment.clientHeight
+    }*/
   },
 
   methods: {
     close: function() {
-      InteractionService.sendInteraction({session: this.$store.state.session, event: 'close', element: this.memory.id})
+      InteractionService.sendInteraction({event: 'close', element: this.memory.id})
         this.$store.commit('setActiveMemories',this.memory.id)
     },
 
@@ -100,11 +103,22 @@ export default {
       } else {
         this.weight = this.localMemory.weight
       }
+    },
+
+    getRoughDate: function(dateString) {
       
+      let parsedDate = new Date(dateString)
+
+      let rough = "Late "
+      if(parsedDate.getDate() <= 20) rough = "Mid "
+      if(parsedDate.getDate() <= 10) rough = "Early "
+      let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][parsedDate.getMonth()]
+    
+      return rough+month
     },
 
     async upvote(){
-      InteractionService.sendInteraction({session: this.$store.state.session, event: 'upvote', element: this.memory.id})
+      InteractionService.sendInteraction({event: 'upvote', element: this.memory.id})
       try {
         MemoryService.upvoteMemory({id: this.memory.id}).then(response => {
           if(response.status == 200) this.localMemory.weight = response.data.weight
@@ -115,7 +129,7 @@ export default {
     },
 
     async report() {
-      InteractionService.sendInteraction({session: this.$store.state.session, event: 'report', element: this.memory.id})
+      InteractionService.sendInteraction({event: 'report', element: this.memory.id})
        try {
         MemoryService.flagMemory({id: this.memory.id, flagged: true}).then(response => {
           if(response.status == 200){

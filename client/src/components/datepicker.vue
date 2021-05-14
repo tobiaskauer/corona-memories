@@ -19,22 +19,38 @@ export default {
         height: window.innerHeight,
         x: -100, 
         y: -100,
-        displayDate: null,
+        //displayDate: null,
         fixed: false,
     }
   },
 
   props: {
-    date: Object,
+
   },
 
   computed: {
-    scales: function() {
-      return this.$store.state.scales
+    date: {
+      set: function(newDate) {this.$store.commit('setNewMemoryDate',newDate)},
+      get: function() {return this.$store.state.newMemory.date}
     },
-    cases: function() {
-      return this.$store.state.cases
-    }
+
+    exactDate: function() {
+      return this.$store.state.newMemory.exactDate
+    },
+
+    displayDate: function() {
+      if(!this.date) return null
+      if(this.exactDate) {
+        return this.formatDate(this.date)
+      } else {
+        return this.getRoughDate(this.date)
+      }
+    },
+
+    scales: function() {return this.$store.state.scales},
+    cases: function() {return this.$store.state.cases}
+
+
       /*displayDate: function() {
           if(!this.date) return null
           return (this.date.exact) ? this.formatDate(this.date) : this.getRoughDate(this.date)
@@ -45,30 +61,28 @@ export default {
       document.addEventListener('mousemove', this.onMouseMove)
   },
 
-  watch: {
+  /*watch: {
     date: {
       deep: true,
       immediate: true,
       handler(newDate) {
-        if(newDate.string != this.displayDate) {
-          this.displayDate = newDate.string
-          this.x = this.scales.x(this.parseDate(newDate.string))
-          
+        if(newDate != this.date) {
+          //this.displayDate = newDate.string
+          this.x = this.scales.x(this.parseDate(newDate))
         }
       }
     }
-  },
+  },*/
 
   methods: {
     onMouseMove: function(event) { //follow line
       if(!this.fixed) {
         if(event.clientX > this.scales.x.range()[0] && event.clientX < this.scales.x.range()[1]) { //check whether we are moving within vis boundaries to avoid errors
-          let date = this.scales.x.invert(event.clientX)
-          let stringDate = this.formatDate(date)
+          this.date = this.scales.x.invert(event.clientX)
           
           this.x = event.clientX
-          this.y = this.scales.y(this.getLineElement(date).value)
-          this.displayDate = stringDate
+          this.y = this.scales.y(this.getLineElement(this.date).value)
+          //this.displayDate = stringDate
 
          
         }
@@ -77,10 +91,11 @@ export default {
 
     mouseUp: function() {
       this.fixed = true
-      this.$parent.$emit('pickDate',{
+      
+      /*this.$parent.$emit('pickDate',{
         string: this.displayDate,
         exact: this.date.exact
-      })
+      })*/
     },
 
     mouseDown: function() {
@@ -88,7 +103,7 @@ export default {
     },
 
     getLineElement: function(date) { //get case element from date
-      let dateString = (typeof date == "string") ? date : this.formatDate(date) 
+      let dateString = (typeof date == "string") ? date : this.formatDate(date)
       let valueOnMemoryDate = this.cases.find(c => c.dateString == dateString)
       return valueOnMemoryDate ? valueOnMemoryDate : null
     },
@@ -96,12 +111,12 @@ export default {
     getRoughDate: function(date) {
       if(!date) return null
       
-      let rough = "Late"
-      if(date.getDate() <= 20) rough = "Mid"
-      if(date.getDate() <= 10) rough = "Early"
+      let rough = "Late "
+      if(date.getDate() <= 20) rough = "Mid "
+      if(date.getDate() <= 10) rough = "Early "
       let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()]
         
-      return rough+" "+month
+      return rough+month
     },
 
 

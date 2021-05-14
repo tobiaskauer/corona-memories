@@ -10,7 +10,7 @@ let parseDate = d3.utcParse("%Y-%m-%d")
 
 export default new Vuex.Store({
   state: {
-    session: "", 
+    session: {}, 
     countries: [], //list of country Strings
     currentCountry: "", //String of current country
 
@@ -27,7 +27,10 @@ export default new Vuex.Store({
     scales: {}, //x, y, and radius
 
     newMemory: {
-      exactDate: true
+      showForm:  false,
+      exactDate: false,
+      datepicker: false,
+      date: new Date("2021-01-01")
     }
   },
 
@@ -46,8 +49,7 @@ export default new Vuex.Store({
         }
       })
 
-      let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([2,6])
-
+      let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([3,7])
       let memories = state.memories.map(memory => {
         let caseIndex = state.cases.findIndex(c => c.dateString == memory.dateString) //find cases that day
         memory.value = (caseIndex !== -1) ? state.cases[caseIndex].value : 0 //get value from there, otherwise assign 0
@@ -88,7 +90,9 @@ export default new Vuex.Store({
       } else {
         return []
       } 
-    }
+    },
+
+    session: state => state.session
   },
 
   mutations: {
@@ -98,12 +102,17 @@ export default new Vuex.Store({
     setCountries(state,payload)       {state.countries = payload},
     setActiveHashtag(state,payload)    {state.activeHashtag = payload},
     setActiveMemories(state,payload) {
-      let index = state.activeMemories.findIndex(id => id == payload)
-      if(index === -1) { //add if it does noes exist
-        state.activeMemories.push(payload)
+      if(payload == null) {
+        state.activeMemories = []
       } else {
-        state.activeMemories.splice(index,1) //delete if it already exists (clicked on close/clicked on bubble)
+        let index = state.activeMemories.findIndex(id => id == payload)
+        if(index === -1) { //add if it does noes exist
+          state.activeMemories.push(payload)
+        } else {
+          state.activeMemories.splice(index,1) //delete if it already exists (clicked on close/clicked on bubble)
+        }
       }
+      
     },
 
     setMemories(state, payload) {
@@ -113,6 +122,11 @@ export default new Vuex.Store({
         memory.date = parseDate(memory.dateString) //parse String to Date
         return memory
       })
+    },
+
+    addMemory(state, payload) {
+      
+      Vue.set(state.memories,state.memories.length,payload)
     },
 
     setDimensions(state,payload) {
@@ -134,6 +148,27 @@ export default new Vuex.Store({
 
     toggleNewMemoryExactDate(state) {
       state.newMemory.exactDate = !state.newMemory.exactDate
+    },
+
+    toggleNewMemoryDatepicker(state,payload) {
+      
+      if(payload != null) {
+        state.newMemory.datepicker = payload
+      } else {
+        state.newMemory.datepicker = !state.newMemory.datepicker
+      }
+    },
+
+    setNewMemoryDate(state,payload) {
+      state.newMemory.date = payload
+    },
+
+    toggleForm(state,payload) {
+      if(payload != null) {
+        state.newMemory.showForm = payload
+      } else {
+        state.newMemory.showForm = !state.newMemory.showForm
+      }
     },
 
     setHashtags(state,payload) {

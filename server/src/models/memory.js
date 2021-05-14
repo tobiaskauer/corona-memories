@@ -14,6 +14,9 @@ module.exports = (sequelize, DataTypes) =>
     country: {
       type: DataTypes.STRING,
     },
+    hash: {
+      type: DataTypes.STRING,
+    },
     weight: {
       type: DataTypes.INTEGER,
       defaultValue: '1'

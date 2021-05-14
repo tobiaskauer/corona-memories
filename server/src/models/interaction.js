@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) =>
       autoIncrement: true,
       primaryKey: true,
     },
-    session: {
+    hash: {
       type: DataTypes.STRING,
     },
     event: {
