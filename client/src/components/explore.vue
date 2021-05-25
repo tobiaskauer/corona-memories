@@ -1,7 +1,7 @@
 <template>
     <div>
           <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
-          <v-select
+          <v-autocomplete
             :items="countries"
             v-model="currentCountry"
             label="Your country"

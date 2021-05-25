@@ -177,7 +177,7 @@ export default new Vuex.Store({
       let ranked = Object.keys(counted)
         .map(tag => {return {tag: tag, occurences: counted[tag]}}) //turn into array
         .sort((a,b) => b.occurences - a.occurences) //sort that array
-      let scaleSize = d3.scaleLinear().domain(d3.extent(ranked,r=>r.occurences)).range([5,15]) //create scale for font sze of hashtags
+      let scaleSize = d3.scaleLinear().domain(d3.extent(ranked,r=>r.occurences)).range([8,15]) //create scale for font sze of hashtags
       ranked.forEach(hashtag => hashtag.size = scaleSize(hashtag.occurences)) //assign font size to each hashtag
       
       state.hashtags = ranked

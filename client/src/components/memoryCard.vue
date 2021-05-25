@@ -35,11 +35,16 @@
               <v-icon color="black" small>mdi-heart</v-icon>
             </v-btn>
           <template v-if="!status">
-            
-            <v-btn plain x-small @click="report">
+            <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+            <v-btn  v-bind="attrs"
+          v-on="on" plain x-small @click="report">
               <v-icon  x-small>mdi-flag</v-icon>
               Report
             </v-btn>
+                    </template>
+                    <span>Click to report hurtful or other problematic submissions.</span>
+            </v-tooltip>
           </template>
           <template v-else>
             {{status}}
@@ -128,17 +133,21 @@ export default {
       }
     },
 
+    reportQuestion() {
+      console.log("none")
+    },
+
     async report() {
       InteractionService.sendInteraction({event: 'report', element: this.memory.id})
        try {
         MemoryService.flagMemory({id: this.memory.id, flagged: true}).then(response => {
           if(response.status == 200){
             
-            this.status = "Thank you. We will not show this story until we reviewed it."
+            this.status = "Thank you. We will not show this story again until we reviewed it."
             
             setTimeout(() => {
               this.close()
-          }, 2000)
+          }, 5000)
           } 
         })
       } catch(err) {

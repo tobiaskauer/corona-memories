@@ -3,7 +3,7 @@
      :transform="`translate(${x},0)`"> 
       <line y1="0" :y2="height" x1="0" x2="0" stroke="#FA5E2D" stroke-width="2px"  stroke-dasharray="0"/>
       <circle r="40" cx="0" :cy="y" fill="#FA5E2D" />
-      <text x="0" text-anchor="middle" :y="(y)">{{displayDate}}</text>
+      <text x="0" text-anchor="middle" :y="(y)" v-html="displayDate" />
     </g>
 </template>
 
@@ -112,11 +112,12 @@ export default {
       if(!date) return null
       
       let rough = "Late "
-      if(date.getDate() <= 20) rough = "Mid "
-      if(date.getDate() <= 10) rough = "Early "
+      if(date.getDate() <= 20) rough = "Mid"
+      if(date.getDate() <= 10) rough = "Early"
       let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][date.getMonth()]
-        
-      return rough+month
+      let str = "<tspan>"+rough+"</tspan>"
+      str += "<tspan x='0' dy='15'>"+month+"</tspan>"
+      return str
     },
 
 
