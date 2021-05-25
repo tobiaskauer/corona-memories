@@ -1,6 +1,15 @@
 <template>
   <v-app>
     <template v-if="cases && memories && countries && mounted">
+      <a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
+        <span>{{ribbonText}}</span>
+      </div></a>
+      <ul class="stepnavi">
+        <li v-for="e,i in steps" :key="i">
+          <span v-if="i == currentStepId-1">&#9679;</span>
+          <span v-else>&#9675;</span>
+          </li>
+      </ul>
     
     <Scrollama
       class="scrollama"
@@ -28,29 +37,30 @@
 
         <div class="introWrapper" data-step="1">  
           <h1>corona<br /><span>memories</span></h1>
-          <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
-          <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
+          <p class="larger">How do we remember the pandemic?</p>
+          <p>Since it started <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
           <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
             </v-btn>
-            <p v-if="clickedDemo && !consent">You have to consent first.</p>
+            <p v-if="clickedDemo && !consent">Please consent first.</p>
+            <p style="margin-top: 15px; opacity: 60%"><img src="../assets/ed.png" style="width: 200px"/><br><img src="../assets/fh.png" style="width: 40%"/></p>
         </div>
 
-        <div class="animatorWrapper" data-step="2"></div> 
+        <div class="animatorWrapper"></div> 
 
 
-        <div v-if="consent" id="progressTarget" class="explorationWrapper" data-step="3"> 
-          <explore @toggleForm="toggleForm" />
+        <div  id="progressTarget" class="explorationWrapper"  data-step="2"> 
+          <explore v-if="consent" @toggleForm="toggleForm" />
         </div>
 
         
-        <div v-if="consent" id="addTarget" class="formWrapper" data-step="4" style="margin-bottom: 100vh;">
+        <div id="addTarget" class="formWrapper" data-step="3">
           <memoryForm
-            v-if="newMemory.showForm"
+            v-if="consent && newMemory.showForm"
             @close="toggleForm(false)"/>
-      </div>
+        </div>
       </template>
 
 
@@ -97,6 +107,8 @@
         <div v-if="consent" id="progressTarget" class="explorationWrapper" data-step="4" style="margin-bottom: 100vh;"> 
           <explore @toggleForm="toggleForm" />
         </div>
+
+        
       </template>
 
 
@@ -150,7 +162,9 @@ export default {
       mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
       consent: false, //only start recording after people consent
       currentStepId: 0, //what part of the page are we in?
-      progress: 0, 
+      steps: Array(3).fill(0),
+      progress: 0,
+      ribbonText: "Help our research",
       clickedDemo: false,
     }
   },
@@ -160,6 +174,7 @@ export default {
     newMemory:   function() {return this.$store.state.newMemory},
     memories:   function() {return this.$store.state.memories},
     testPath:   function() {return this.$store.state.session.path},
+    session: function() { return this.$store.getters.session.hash},
     countries:  function() {
       return this.$store.state.countries.map(country => {
         return {
@@ -169,11 +184,20 @@ export default {
       })
     },
 
-
   },
  
   mounted () {
     this.mounted = true;
+
+    
+      window.setInterval(() => {
+        if (this.ribbonText == "Help our research") {
+          this.ribbonText = "Do our survey"
+        } else {
+          this.ribbonText = "Help our research"
+        }
+  }, 10000)
+
   },
 
 
@@ -208,6 +232,8 @@ export default {
       switch(element.className) {
         case "introWrapper": 
           this.progress = 0
+          this.$store.commit('setActiveMemories', null) 
+
           break
       }
       if(element.className == "formWrapper") {
@@ -252,14 +278,15 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;900&display=swap');
 
 .introWrapper, .explorationWrapper, .animatorWrapper, .formWrapper {
-  //border: 1px dotted black;
-  height: 100vh;
   padding-top: 10px;
-  padding: 40px 0px 50px 20px;
+  padding: 40px 0px 0px 30px;
   z-index: 99;
   position: relative;
   width: 400px;
+    height: 100vh;
 }
+
+
 
 .hidden {
    margin-left: -400px !important;
@@ -280,6 +307,23 @@ export default {
 
 button, .v-input, .introWrapper {
   pointer-events: all;
+}
+
+.ear {
+  position: fixed;
+  text-align: center;
+  top: 40px; 
+  right: -50px;
+  z-index: 99;
+  font-family: 'Roboto Slab', serif;
+  height: 40px;
+  line-height: 40px;
+  transform: rotate(45deg);
+  width: 210px;
+  background: #FA5E2D;
+  pointer-events: all;
+  color: white !important;
+  box-shadow: 10px 5px 5px rgba(0,0,0,.1);
 }
 
 h1{
@@ -337,5 +381,20 @@ p.smaller {
   background: #FFEBC6;
   min-height: 100%;
   height: 100%;
+}
+
+.stepnavi {
+  position: fixed;
+  top: 20vh;
+  left: 3px;
+  margin: 0;
+  padding: 0;
+}
+.stepnavi li {
+  margin: 0;
+  padding: 0;
+  display: block;
+  line-height: 15px;
+  font-size: 20px;
 }
   </style>

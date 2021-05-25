@@ -19,7 +19,7 @@
         <p>
           <strong>It will be visible soon.</strong> In the meantime, if you have a minute and want to help our research, please consider filling out our <a :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">survey</a>.
         </p> 
-        <v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">Fill out Survey</v-btn>
+        <v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank">Fill out Survey</v-btn>
         <v-btn small outlined color="primary" block @click="blankify" style="margin-top: 10px;">Add another story first</v-btn>
         
         <!--<v-alert
@@ -56,8 +56,8 @@
                   :style="{margin: '2px'}"
                   :key="'hashtag-'+i"
                  @click="addTag(hashtag.tag)">{{hashtag.tag}} </v-chip>
-            <a @click="showHashtags = 20">show more</a></p>
-          <v-select
+            <a v-if="hashtags.length >= showHashtags" @click="showHashtags = showHashtags + 5">show more</a></p>
+          <v-autocomplete
                   :items="countries"
                   v-model="currentCountry"
                   dense
@@ -155,14 +155,13 @@ export default {
 
   props: {
     country: String,
-    
   },
 
   computed: {
+    session: function() { return this.$store.getters.session.hash},
     hashtags:   function() {
       let hashtags = this.$store.state.hashtags
-      
-      if(hashtags.length == 0) hashtags = ["lockdown", "stayhome", "socialdistancing", "quarantine", "rip"].map(tag => {return {occurences: 0, size: 10, tag: "#"+tag}})
+      if(hashtags.length < 5) hashtags = hashtags.concat(["lockdown", "stayhome", "socialdistancing", "quarantine", "covid"].map(tag => {return {occurences: 0, size: 10, tag: "#"+tag}}))
       
       return hashtags
     },
@@ -285,6 +284,12 @@ export default {
   watch: {
     comment: function(newComment) {
       if(newComment.length > 2 && this.showHashtags < 10) this.showHashtags = 10
+      console.log()
+      let commentHashtags = newComment.match(/#[a-z]+/gi)
+      if(commentHashtags) {
+        console.log(commentHashtags)
+      }
+      
     },
     date: {
       immediate: true,
