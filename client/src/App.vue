@@ -26,7 +26,6 @@ export default {
   created() {
     let testPaths = ['data-discourse-question','data-question-discourse']
     let chosenPath = testPaths[Math.floor(Math.random() * 2)] //TODO Get from localStorage (to have people keep their chosen option
-    chosenPath = "data-question-discourse"
     chosenPath = 'data-discourse-question' // CODE HARD WHILE BETAing
 
     window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)

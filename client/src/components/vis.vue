@@ -54,13 +54,15 @@
     </g>
 
   <g v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
-    <g v-for="(link, i) in memoryLinks" :key="'card-'+i">
+    
+    <transition-group name="slide-fade" tag="g" v-for="(link, i) in memoryLinks" :key="'card-'+i">
       <line
         stroke="#E63700"
         :x1="link.source.x"
         :y1="link.source.y"
         :x2="link.target.x - (boxWidth / 2)"
         :y2="link.target.y + 40"
+        :key="'line'+i"
         />
       <foreignObject
         :width="boxWidth"
@@ -68,11 +70,12 @@
         style="overflow: visible"
         :x="link.target.x - (boxWidth/2)"
         :y="link.target.y"
+        :key="'fO'+i"
         requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
         <memoryCard :width="boxWidth" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
       </foreignObject>
-      
-    </g>
+    
+    </transition-group>
   </g>
 
     <!-- show datepicker element when adding new memories --> 
@@ -192,7 +195,7 @@ export default {
           axis.selectAll(".domain").attr("stroke","none")
           axis.selectAll(".tick line").attr("stroke","none")
           axis.selectAll(".tick text")
-            .style("text-anchor", "end")
+            .style("text-anchor", "start")
             .style("text-transform", "UPPERCASE")
             .style("opacity", .3)
           break;
@@ -204,7 +207,8 @@ export default {
           );
           axis.selectAll(".domain").attr("stroke","none")
           axis.selectAll(".tick line").attr("opacity",.05)
-          axis.selectAll(".tick text").attr("opacity",.3)
+          axis.selectAll(".tick text")
+            .attr("opacity",.3)
           break;
       }
     }
@@ -213,6 +217,9 @@ export default {
 </script>
 
 <style scoped>
+.slide-fade-enter-active {
+  transition: all .3s ease;
+}
     path.inactive {
     opacity: .2 !important;
     fill: grey !important;
