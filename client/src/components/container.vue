@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style= "[consent ? {position: 'static'} : {position: 'fixed'}]">
     <template v-if="cases && memories && countries && mounted">
       <a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
         <span>{{ribbonText}}</span>
@@ -385,7 +385,7 @@ p.smaller {
 }
 
 #app {
-  
+  width: 100%;
   background: #FFEBC6;
   min-height: 100%;
   height: 100%;
