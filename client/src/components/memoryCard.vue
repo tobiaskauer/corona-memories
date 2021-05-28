@@ -40,7 +40,7 @@
             <v-btn  v-bind="attrs"
           v-on="on" plain x-small @click="report">
               <v-icon  x-small>mdi-flag</v-icon>
-              Report
+              {{reportText}}
             </v-btn>
                     </template>
                     <span>Click to report hurtful or other problematic submissions.</span>
@@ -63,7 +63,10 @@ export default {
   data () {
     return {
         status: null,
-        weight: null
+        weight: null,
+        reportText: "Report",
+        reportClickCount: 0,
+ 
     }
   },
 
@@ -133,12 +136,15 @@ export default {
       }
     },
 
-    reportQuestion() {
-      console.log("none")
-    },
+
+
 
     async report() {
-      InteractionService.sendInteraction({event: 'report', element: this.memory.id})
+      if (this.reportClickCount == 0) {
+        this.reportText = "Click again to report this story to the website admin."
+        this.reportClickCount++
+      } else {
+              InteractionService.sendInteraction({event: 'report', element: this.memory.id})
        try {
         MemoryService.flagMemory({id: this.memory.id, flagged: true}).then(response => {
           if(response.status == 200){
@@ -152,6 +158,7 @@ export default {
         })
       } catch(err) {
         console.log(err)
+      }
       }
     }
   }
