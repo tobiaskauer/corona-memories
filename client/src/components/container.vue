@@ -45,18 +45,21 @@
              I agree, show me
             </v-btn>
             <p v-if="clickedDemo && !consent">Please consent first.</p>
-            <p style="margin-top: 15px; opacity: 60%"><img src="../assets/ed.png" style="width: 200px"/><br><img src="../assets/fh.png" style="width: 40%"/></p>
+            <p style="margin-top: 15px">
+              <a href="https://www.designinformatics.org/" target="_blank"><img class="logo" src="../assets/ed.png" style="width: 200px"/></a><br>
+              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%"/></a>
+            </p>
         </div>
 
-        <div class="animatorWrapper"></div> 
+        <div class="animatorWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]"></div> 
 
 
-        <div  id="progressTarget" class="explorationWrapper"  data-step="2"> 
+        <div  id="progressTarget" class="explorationWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]"  data-step="2"> 
           <explore v-if="consent" @toggleForm="toggleForm" />
         </div>
 
         
-        <div id="addTarget" class="formWrapper" data-step="3">
+        <div id="addTarget" class="formWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
           <memoryForm
             v-if="consent && newMemory.showForm"
             @close="toggleForm(false)"/>
@@ -277,14 +280,19 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;900&display=swap');
 
-.introWrapper, .explorationWrapper, .animatorWrapper, .formWrapper {
+.introWrapper, .explorationWrapper, .formWrapper {
   padding-top: 10px;
   padding: 40px 0px 0px 30px;
   z-index: 99;
   position: relative;
   width: 400px;
-    height: 100vh;
 }
+
+.introWrapper {
+  height: 100vh;
+}
+
+
 
 
 
@@ -383,10 +391,15 @@ p.smaller {
   height: 100%;
 }
 
+.logo {
+    -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+  filter: grayscale(100%);
+}
+
 .stepnavi {
   position: fixed;
-  top: 20vh;
-  left: 3px;
+  top: 60px;
+  left: 10px;
   margin: 0;
   padding: 0;
 }
@@ -395,6 +408,7 @@ p.smaller {
   padding: 0;
   display: block;
   line-height: 15px;
+  color: #FA5E2D;
   font-size: 20px;
 }
   </style>

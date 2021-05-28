@@ -107,7 +107,8 @@ export default new Vuex.Store({
       } else {
         let index = state.activeMemories.findIndex(id => id == payload)
         if(index === -1) { //add if it does noes exist
-          state.activeMemories.push(payload)
+          //state.activeMemories.push(payload) //use this to display several active memories
+          state.activeMemories = [payload] //use this to only have one active memory
         } else {
           state.activeMemories.splice(index,1) //delete if it already exists (clicked on close/clicked on bubble)
         }

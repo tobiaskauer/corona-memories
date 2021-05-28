@@ -9,7 +9,6 @@
 
 <script>
 import * as d3 from 'd3'
-//import Vue from 'vue'
 
 export default {
     data () {
@@ -17,9 +16,8 @@ export default {
         formatDate: d3.timeFormat("%Y-%m-%d"),
         parseDate: d3.utcParse("%Y-%m-%d"),
         height: window.innerHeight,
-        x: -100, 
+        x: -100, //start out of view 
         y: -100,
-        //displayDate: null,
         fixed: false,
     }
   },
@@ -30,13 +28,13 @@ export default {
 
   computed: {
     date: {
-      set: function(newDate) {this.$store.commit('setNewMemoryDate',newDate)},
+      set: function(newDate) {console.log(this.fixed);this.$store.commit('setNewMemoryDate',newDate)},
       get: function() {return this.$store.state.newMemory.date}
     },
 
-    exactDate: function() {
-      return this.$store.state.newMemory.exactDate
-    },
+    scales: function() {return this.$store.state.scales},
+    cases: function() {return this.$store.state.cases},
+    exactDate: function() {return this.$store.state.newMemory.exactDate},
 
     displayDate: function() {
       if(!this.date) return null
@@ -47,39 +45,19 @@ export default {
       }
     },
 
-    scales: function() {return this.$store.state.scales},
-    cases: function() {return this.$store.state.cases}
-
-
-      /*displayDate: function() {
-          if(!this.date) return null
-          return (this.date.exact) ? this.formatDate(this.date) : this.getRoughDate(this.date)
-      }*/
+    
   },
 
   mounted() {
       document.addEventListener('mousemove', this.onMouseMove)
   },
 
-  /*watch: {
-    date: {
-      deep: true,
-      immediate: true,
-      handler(newDate) {
-        if(newDate != this.date) {
-          //this.displayDate = newDate.string
-          this.x = this.scales.x(this.parseDate(newDate))
-        }
-      }
-    }
-  },*/
-
   methods: {
     onMouseMove: function(event) { //follow line
+    
       if(!this.fixed) {
         if(event.clientX > this.scales.x.range()[0] && event.clientX < this.scales.x.range()[1]) { //check whether we are moving within vis boundaries to avoid errors
           this.date = this.scales.x.invert(event.clientX)
-          
           this.x = event.clientX
           this.y = this.scales.y(this.getLineElement(this.date).value)
           //this.displayDate = stringDate
@@ -91,11 +69,6 @@ export default {
 
     mouseUp: function() {
       this.fixed = true
-      
-      /*this.$parent.$emit('pickDate',{
-        string: this.displayDate,
-        exact: this.date.exact
-      })*/
     },
 
     mouseDown: function() {
