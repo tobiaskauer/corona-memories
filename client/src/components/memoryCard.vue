@@ -14,8 +14,7 @@
       <v-row dense>      
         <v-col>
           <p class="topBar">
-            
-            
+
             <em>[anonymous], {{displayDate}}:</em>
           </p>
 
@@ -66,6 +65,7 @@ export default {
         weight: null,
         reportText: "Report",
         reportClickCount: 0,
+        liked: false,
  
     }
   },
@@ -106,7 +106,7 @@ export default {
     },
 
     mouseOver: function(enter) {
-      if(enter) {
+      if(enter && !this.liked) {
         this.weight = "+1"
       } else {
         this.weight = this.localMemory.weight
@@ -126,14 +126,21 @@ export default {
     },
 
     async upvote(){
-      InteractionService.sendInteraction({event: 'upvote', element: this.memory.id})
-      try {
-        MemoryService.upvoteMemory({id: this.memory.id}).then(response => {
-          if(response.status == 200) this.localMemory.weight = response.data.weight
-        })
-      } catch(err) {
-        console.log(err)
+      if(!this.liked) {
+        InteractionService.sendInteraction({event: 'upvote', element: this.memory.id})
+        try {
+          MemoryService.upvoteMemory({id: this.memory.id}).then(response => {
+            if(response.status == 200) {
+              this.localMemory.weight = response.data.weight
+              this.weight = response.data.weight
+              this.liked = true
+            } 
+         })
+       } catch(err) {
+          console.log(err)
+       }
       }
+
     },
 
 

@@ -55,7 +55,7 @@
 
   <g v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
     
-    <transition-group name="slide-fade" tag="g" v-for="(link, i) in memoryLinks" :key="'card-'+i">
+    <transition-group name="cards" tag="g" v-for="(link, i) in memoryLinks" :key="'card-'+i">
       <line
         stroke="#E63700"
         :x1="link.source.x"
@@ -135,17 +135,22 @@ export default {
       var simulation = d3.forceSimulation(nodes) //generate force directed simulation
       .force('charge', d3.forceManyBody().strength(1))
       .force('link', d3.forceLink().links(links)) 
-      .force('collide', d3.forceCollide(150)) //dont collide with other text labels, but be close to button.labels
+      .force('collide', d3.forceCollide(100)) //dont collide with other text labels, but be close to button.labels
       for(let i = 0; i <= 10; i++) {
         simulation.tick()
       }
 
+      
+
 
       //bounding box for lazy people
-      /*links.forEach(link => {
-        if(link.target.y < this.memoryBox.height/2) link.target.y = this.memoryBox.height/2
-        if(link.target.x < this.memoryBox.width/2) link.target.x = this.memoryBox.width/2
-      })*/
+      links.forEach(link => {
+        let bottomClearance = 100 //boxes of what size should be fully visible? (variable height, computing it happens insie the foreignObject and I'm lazy)
+        if(link.target.x < this.boxWidth/2) link.target.x = this.boxWidth/2 + 5
+        if(link.target.x > this.dimensions.width - this.boxWidth/2) link.target.x = this.dimensions.width - this.boxWidth/2 - 10 
+        if(link.target.y < 0) link.target.y = 5
+        if(link.target.y > this.dimensions.height - bottomClearance) link.target.y = this.dimensions.height - bottomClearance -5
+      })
     
       return links  
     },
@@ -217,7 +222,21 @@ export default {
 </script>
 
 <style scoped>
-.slide-fade-enter-active {
+.card-item {
+  display: inline-block;
+  margin-right: 10px;
+}
+.card-enter-active, .card-leave-active {
+  transition: all 1s;
+}
+.card-enter, .card-leave-to /* .list-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.card-move {
+  transition: transform 1s;
+}
+.card-fade-enter-active {
   transition: all .3s ease;
 }
     path.inactive {

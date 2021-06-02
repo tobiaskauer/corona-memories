@@ -235,8 +235,6 @@ export default {
       switch(element.className) {
         case "introWrapper": 
           this.progress = 0
-          this.$store.commit('setActiveMemories', null) 
-
           break
       }
       if(element.className == "formWrapper") {

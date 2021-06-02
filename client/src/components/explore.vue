@@ -45,7 +45,8 @@ export default {
   },
 
   computed: {
-      memories:   function() {return this.$store.state.memories},
+    memories:   function() {return this.$store.state.memories},
+    activeMemories: function() {return this.$store.getters.activeMemories},
     countries:  function() {
       return this.$store.state.countries.map(country => {
         return {
@@ -92,8 +93,9 @@ export default {
 
     randomMemory: function() {
       interactionService.sendInteraction({event: 'randomMemory'})
-      let id = this.memories.map(memory => memory.id)[Math.floor(Math.random()*this.memories.length)]
-      this.$store.commit('setActiveMemories',id)
+      let inactiveMemories = this.memories.map(memory => memory.id).filter(id => !this.activeMemories.map(memory => memory.id).includes(id))
+      let id = inactiveMemories[Math.floor(Math.random()*inactiveMemories.length)]
+      if(id != null) this.$store.commit('setActiveMemories',id)
     },
 
     hideMemories: function() {

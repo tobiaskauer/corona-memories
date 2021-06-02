@@ -49,15 +49,23 @@ export default new Vuex.Store({
         }
       })
 
-      let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([3,7])
-      let memories = state.memories.map(memory => {
+      let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([5,10])
+      let memories = state.memories.map((memory,i) => {
         let caseIndex = state.cases.findIndex(c => c.dateString == memory.dateString) //find cases that day
         memory.value = (caseIndex !== -1) ? state.cases[caseIndex].value : 0 //get value from there, otherwise assign 0
         memory.isMemory = true //to compare with fake memories when building a beeswarm
         memory.x = state.scales.x(memory.date) //get x position (based on date)
         memory.y = state.scales.y(memory.value) //get y position (based on case numbers that day)
+        
         memory.radius = radius(memory.weight) //get radius based on weight
         memory.scale = 1
+
+        if(i == 3) {
+          console.log("xPos: ", memory.x)
+          console.log("Date: ", memory.date)
+          console.log("Dimensions: ", state.dimensions)
+          console.log("----")
+        }
 
         //create organic shapes based on memory radis
         let wobbly = (v) => v + ((Math.random() * memory.radius/2) - memory.radius/4 )
@@ -107,8 +115,8 @@ export default new Vuex.Store({
       } else {
         let index = state.activeMemories.findIndex(id => id == payload)
         if(index === -1) { //add if it does noes exist
-          //state.activeMemories.push(payload) //use this to display several active memories
-          state.activeMemories = [payload] //use this to only have one active memory
+          state.activeMemories.push(payload) //use this to display several active memories
+          //state.activeMemories = [payload] //use this to only have one active memory
         } else {
           state.activeMemories.splice(index,1) //delete if it already exists (clicked on close/clicked on bubble)
         }
@@ -126,7 +134,7 @@ export default new Vuex.Store({
     },
 
     addMemory(state, payload) {
-      
+
       Vue.set(state.memories,state.memories.length,payload)
     },
 
