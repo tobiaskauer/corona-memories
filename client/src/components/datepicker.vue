@@ -55,7 +55,6 @@ export default {
 
   methods: {
     onMouseMove: function(event) { //follow line
-    console.log(this.fixed)
       if(!this.fixed) {
         if(event.clientX > this.scales.x.range()[0] && event.clientX < this.scales.x.range()[1]) { //check whether we are moving within vis boundaries to avoid errors
           this.date = this.scales.x.invert(event.clientX)
