@@ -29,8 +29,13 @@ export default {
 
   computed: {
     date: {
-      set: function(newDate) {this.$store.commit('setNewMemoryDate',newDate)},
-      get: function() {return this.$store.state.newMemory.date}
+      set: function(newDate) {
+        this.$store.commit('setNewMemoryDate',newDate)
+        },
+      get: function() {
+        return this.$store.state.newMemory.date
+        },
+      
     },
 
     scales: function() {return this.$store.state.scales},
@@ -42,6 +47,7 @@ export default {
       if(this.exactDate) {
         return this.formatDate(this.date)
       } else {
+        
         return this.getRoughDate(this.date)
       }
     },

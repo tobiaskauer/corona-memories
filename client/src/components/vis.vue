@@ -15,9 +15,9 @@
       fill="none"
       stroke="black"/>
     
-    <!-- beeswarm plot and hashtag network -->
+    <!-- beeswarm plot -->
     <g class="beeswarm" v-if="beeswarm[0]">
-      <g class="tutorial" v-if="!consent && progress < 1">
+      <g class="tutorial" v-if="!consent && progress < 1 && display != 'separated'">
         <rect width="200" height="50" fill="rgba(254,232,194,.7)" :x="beeswarm[0].x-255" :y="beeswarm[0].y-75" />
         <line stroke="#FA5E2D" stroke-width=".5" :x1="beeswarm[0].x-5" :y1="beeswarm[0].y-5" :x2="beeswarm[0].x-50" :y2="beeswarm[0].y-50" />
         <text
@@ -25,7 +25,8 @@
           @click="$emit('demoClick')"
           font-size=".8em"
           text-anchor="end">
-            <tspan :x="beeswarm[0].x-55">A dot is a person's memory.</tspan>
+            <tspan v-if="display == 'embedded'" :x="beeswarm[0].x-55">A dot is a person's memory.</tspan>
+            <tspan v-if="display == 'contextual'" :x="beeswarm[0].x-55">A dot is a policy response.</tspan>
             <tspan dy="1.2em" :x="beeswarm[0].x-55">Click to read them.</tspan>
         </text>
         <path 
@@ -45,7 +46,7 @@
         
         :opacity="(activeMemories.findIndex(memory => memory.id == circle.id) !== -1) ? 1 : opacity"
         :fill="(activeMemories.findIndex(memory => memory.id == circle.id) !== -1) ? '#E63700' : '#FA5E2D'"
-        :class="{inactive: (activeHashtag && activeHashtag != circle.hashtag)}"
+        :class="{inactive: activeHashtag && circle.hashtag && !circle.hashtag.includes(activeHashtag)}"
         @click="click(circle.id)"
         @mouseover="hover(circle,$event)"
         @mouseout="hover(circle,$event)"
@@ -53,14 +54,13 @@
       </g>
     </g>
 
-  <g v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
-    
-    <transition-group name="cards" tag="g" v-for="(link, i) in memoryLinks" :key="'card-'+i">
+  <transition-group name="cards" tag="g" v-if="activeMemories && progress > beeswarm.filter(e => e.isMemory).length - 10">
+    <g v-for="(link, i) in memoryLinks" :key="'card-'+i">
       <line
         stroke="#E63700"
         :x1="link.source.x"
         :y1="link.source.y"
-        :x2="link.target.x - (boxWidth / 2)"
+        :x2="link.target.x"
         :y2="link.target.y + 40"
         :key="'line'+i"
         />
@@ -72,14 +72,14 @@
         :y="link.target.y"
         :key="'fO'+i"
         requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
-        <memoryCard :width="boxWidth" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
+        <memoryCard :width="boxWidth" :display="display" :memory="link.target.memory"/> <!-- use component to avoid rendering issues with foreignObecht https://nrlzzszpdtldzzbvyll4js5rom-hw4pqoxzcs7yk-stackoverflow-com.translate.goog/questions/65321012/vuetify-v-menu-component-inserted-into-svg-is-not-displayed-in-browser -->   
       </foreignObject>
     
-    </transition-group>
-  </g>
+    </g>
+  </transition-group>
 
     <!-- show datepicker element when adding new memories --> 
-    <Datepicker v-if="showDatepicker" />
+    <Datepicker v-if="showDatepicker && this.display == 'embedded'" />
   </svg>
 </template>
 
@@ -103,13 +103,14 @@ export default {
       visibleHashtags: 10,
       opacity: 0.8, //circle opacity when not hoveredü
       lineGenerator: d3.line().x(d => d.x).y(d => d.y),
-      boxWidth: 250,
+      boxWidth: 350,
     }
   },
 
   props: {
     progress: Number,
     newMemory: Object,
+    display: String,  
     consent: Boolean
   },
 
@@ -123,6 +124,8 @@ export default {
     showDatepicker: function() {return this.$store.state.newMemory.datepicker},
     memoryLinks: function() {      
       if(!this.activeMemories) return null  
+
+      
       
       let nodes = []
       let links = []
@@ -135,7 +138,7 @@ export default {
       var simulation = d3.forceSimulation(nodes) //generate force directed simulation
       .force('charge', d3.forceManyBody().strength(1))
       .force('link', d3.forceLink().links(links)) 
-      .force('collide', d3.forceCollide(100)) //dont collide with other text labels, but be close to button.labels
+      .force('collide', d3.forceCollide(this.boxWidth / 2)) //dont collide with other text labels, but be close to button.labels
       for(let i = 0; i <= 10; i++) {
         simulation.tick()
       }
@@ -182,7 +185,9 @@ export default {
       }
     },
     click: function(id) {
-      interactionService.sendInteraction({event: 'openMemory', element: id})
+      
+      let event = this.display == 'embedded' ? 'openMemory' : 'openContext'
+      interactionService.sendInteraction({event: event, element: id})
       this.$store.commit('setActiveMemories',id)
     },
   },

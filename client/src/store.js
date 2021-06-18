@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import caseService from '@/services/caseService'
 import memoryService from '@/services/memoryService'
+import contextService from './services/contextService'
+
 import * as d3 from 'd3'
 
 Vue.use(Vuex)
@@ -39,7 +41,8 @@ export default new Vuex.Store({
       return state.memories.filter(memory => state.activeMemories.includes(memory.id))
     },
 
-    beeswarm: state => { 
+    beeswarm: state => {
+      if(! state.scales) return null;
       let fakeMemories = state.cases.map(day => { //generate some fixed invisible bubbles along the line chart (to space away real memories from line)
         return {
           fx: day.x,
@@ -50,7 +53,7 @@ export default new Vuex.Store({
       })
 
       let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([5,10])
-      let memories = state.memories.map((memory,i) => {
+      let memories = state.memories.map((memory) => {
         let caseIndex = state.cases.findIndex(c => c.dateString == memory.dateString) //find cases that day
         memory.value = (caseIndex !== -1) ? state.cases[caseIndex].value : 0 //get value from there, otherwise assign 0
         memory.isMemory = true //to compare with fake memories when building a beeswarm
@@ -60,12 +63,12 @@ export default new Vuex.Store({
         memory.radius = radius(memory.weight) //get radius based on weight
         memory.scale = 1
 
-        if(i == 3) {
+        /*if(i == 3) {
           console.log("xPos: ", memory.x)
           console.log("Date: ", memory.date)
           console.log("Dimensions: ", state.dimensions)
           console.log("----")
-        }
+        }*/
 
         //create organic shapes based on memory radis
         let wobbly = (v) => v + ((Math.random() * memory.radius/2) - memory.radius/4 )
@@ -84,6 +87,7 @@ export default new Vuex.Store({
         return memory
       })
 
+
       if(memories.length > 0) { //wait until we have real memories before we return a swarm with fake ones
         let circles = memories.concat(fakeMemories)
         let force = d3.forceSimulation(circles)
@@ -91,7 +95,8 @@ export default new Vuex.Store({
           .force('forceY', d3.forceY(circle => circle.y).strength(.1))
           .force('collide', d3.forceCollide(circle => circle.radius + circle.radius/4))
   
-        for(let i = 0; i <= 20; i++) {
+
+        for(let i = 0; i <= 50; i++) {
             force.tick()
         }
         return circles
@@ -126,8 +131,20 @@ export default new Vuex.Store({
 
     setMemories(state, payload) {
       state.memories = payload.map(memory => {
+        let hashtags = memory.category ? memory.category : memory.comment.match(/#[a-z]+/gi) //return array of all hashtags in comment or categories in context
+        //memory.hashtag = hashtags ? hashtags[0] : null //TODO: use whole array, not just first string
+        memory.hashtag = hashtags ? hashtags : null
+        memory.date = parseDate(memory.dateString) //parse String to Date
+        return memory
+      })
+    },
+
+    setContext(state, payload) {
+      console.log()
+      state.memories = payload.map(memory => {
         let hashtags = memory.comment.match(/#[a-z]+/gi) //return array of all hashtags in comment
-        memory.hashtag = hashtags ? hashtags[0] : null //TODO: use whole array, not just first string
+        //memory.hashtag = hashtags ? hashtags[0] : null //TODO: use whole array, not just first string
+        memory.hashtag = hashtags ? hashtags : null
         memory.date = parseDate(memory.dateString) //parse String to Date
         return memory
       })
@@ -181,7 +198,12 @@ export default new Vuex.Store({
     },
 
     setHashtags(state,payload) {
-      let tags = payload.map(memory => memory.comment.match(/#[a-z]+/gi)).flat().filter(tag => tag) //find all comments with hashtags
+      let tags
+      if(state.session.path == 'contextual') {
+        tags = payload.map(e => e.category) //array of categories
+      } else {
+        tags = payload.map(memory => memory.comment.match(/#[a-z]+/gi)).flat().filter(tag => tag) //find all comments with hashtags
+      }
       let counted = tags.reduce((a, b) => (a[b] = (a[b] || 0) + 1, a), {}) //count occurence of single hashtags
       let ranked = Object.keys(counted)
         .map(tag => {return {tag: tag, occurences: counted[tag]}}) //turn into array
@@ -211,26 +233,49 @@ export default new Vuex.Store({
     },
 
     async setMemories (context) {
-      let memories = (await memoryService.getMemories({
-        attributes: [['date', 'dateString'], 'exactDate', 'comment', 'weight', 'id'],
-        country: context.state.currentCountry,
-        flagged: false //don't include memories flagged for review
-        })).data
-        context.commit('setMemories',memories) //write memories to state
-        context.commit('setHashtags',memories)  //also compute new hashtags from these memories
+      
+      let session = context.state.session
+
+      let bubbles
+      if(session.path == 'contextual') { //based on current testing path, get either context info or "real" memories
+        bubbles = (await contextService.getContexts({
+          attributes: [['date', 'dateString'], 'country', 'category', 'comment', 'weight', ['index', 'id']],
+          country: context.state.currentCountry,
+          })).data
+      } else {
+        bubbles = (await memoryService.getMemories({
+          attributes: [['date', 'dateString'], 'exactDate', 'country', 'comment', 'weight', 'id'],
+          country: context.state.currentCountry,
+          flagged: false //don't include memories flagged for review
+          })).data
+      }
+
+        context.commit('setMemories',bubbles) //write memories to state
+        context.commit('setHashtags',bubbles)  //also compute new hashtags from these memories
+
+          
+
+        
     },
 
+    
+
     async setCountries (context) {
-      let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
+      //let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
+      let countryMemories = (context.state.session.path == 'embedded') ? (await memoryService.countryMemories()).data : (await contextService.countryContexts()).data
+
+
       let countries = (await caseService.getCountries()).data.map(e => {
-      let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories
-      let n_memories = (index !== -1) ? countryMemories[index].n_memories : 0
+        let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories
+
+        let n_memories = (index !== -1) ? countryMemories[index].count : 0
       
         return {
           name: e.country,
-          n_memories: (e.country != "World") ? n_memories : countryMemories.map(country => country.n_memories).reduce((prev, next) => prev + next)
+          n_memories: (e.country != "World") ? n_memories : countryMemories.map(country => country.count).reduce((prev, next) => prev + next)
         } 
       }) //get _ALL_ countries once when mounting (no need to to this reactive)
+      
       
 
       //let countries = ['World','Germany','France','Italy','United States','United Kingdom','Switzerland']

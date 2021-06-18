@@ -6,21 +6,13 @@
     :width="width"
   >
     <div>
-      <v-btn style="position: absolute; right: 5px; top: 0px;" icon @click="close">
+      <v-btn v-if="display != 'separate'" style="position: absolute; right: 5px; top: 0px;" icon @click="close">
         <v-icon small color="black">mdi-close-circle</v-icon>
       </v-btn>
     </div>
     <v-card-text>
       <v-row dense>      
-        <v-col>
-          <p class="topBar">
-
-            <em>[anonymous], {{displayDate}}:</em>
-          </p>
-
-          <p ref="comment" class="comment">{{memory.comment}}</p>  
-            
-
+        <v-col sm v-if="display = 'contextual'">
           <v-btn
               x-small 
               fab
@@ -30,10 +22,20 @@
               @mouseover="mouseOver(true)"
               @mouseout="mouseOver(false)"
             >
-              {{weight}}<br />
+              {{weight}} <br />
               <v-icon color="black" small>mdi-heart</v-icon>
             </v-btn>
-          <template v-if="!status">
+        </v-col>
+        <v-col cols="10">
+          <p class="topBar">
+
+            <em v-if="display == 'embedded'"> [anonymous], {{displayDate}}, {{memory.country}}</em>
+            <em v-if="display == 'contextual'">{{displayDate}}, {{memory.country}}</em>
+
+
+            <template v-if="display == 'separated'">
+              <div style="position: absolute; right: 5px; top: 5px;">
+              <template v-if="!status">
             <v-tooltip bottom>
                     <template v-slot:activator="{ on, attrs }">
             <v-btn  v-bind="attrs"
@@ -48,6 +50,34 @@
           <template v-else>
             {{status}}
           </template>
+          </div>
+            </template>
+          </p>
+
+          <p ref="comment" class="comment">{{memory.comment}}</p>  
+
+          
+
+
+
+            <template v-if="display != 'separated'">
+              <template v-if="!status">
+            <v-tooltip bottom>
+                    <template v-slot:activator="{ on, attrs }">
+            <v-btn  v-bind="attrs"
+          v-on="on" plain x-small @click="report">
+              <v-icon  x-small>mdi-flag</v-icon>
+              {{reportText}}
+            </v-btn>
+                    </template>
+                    <span>Click to report hurtful or other problematic submissions.</span>
+            </v-tooltip>
+          </template>
+          <template v-else>
+            {{status}}
+          </template>
+            </template>
+          
           </v-col>
       </v-row>
     </v-card-text>
@@ -73,6 +103,7 @@ export default {
   props: {
       memory: Object,
       width: Number,
+      display: String,
   },
 
   created() {
@@ -92,6 +123,7 @@ export default {
       return this.memory
     },
     displayDate: function() {
+      if(this.display == 'contextual') return this.memory.dateString
       return (this.memory.exactDate) ? this.memory.dateString : this.getRoughDate(this.memory.date)
     }
     /*commentHeight: function() {
@@ -121,8 +153,8 @@ export default {
       if(parsedDate.getDate() <= 20) rough = "Mid "
       if(parsedDate.getDate() <= 10) rough = "Early "
       let month = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][parsedDate.getMonth()]
-    
-      return rough+month
+      let year = " "+parsedDate.getFullYear()
+      return rough+month+year
     },
 
     async upvote(){

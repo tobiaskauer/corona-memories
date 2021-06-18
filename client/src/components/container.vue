@@ -19,23 +19,17 @@
       @step-progress="stepProgressHandler"
     >
 
-
-
-
-
-
-
-
-      <!-- TESTPATH: DATA -- DISCOURSE -- QUESTION -->
-      <template v-if="testPath == 'data-discourse-question'">
+      <!-- EMBEDDED -->
+      <template v-if="testPath == 'embedded'">
         <div slot="graphic" class="visWrapper"> 
         <vis
           :progress="progress"
           :consent="consent"
+          :display="testPath"
           @demoClick="highlightConsent" />
       </div>
 
-        <div class="introWrapper" data-step="1">  
+        <div class="introWrapper w400" data-step="1" :style="{width: dimensions.left}">  
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger">How do we remember the pandemic?</p>
           <p>Since it started <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
@@ -53,13 +47,12 @@
 
         <div class="animatorWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]"></div> 
 
-
-        <div  id="progressTarget" class="explorationWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]"  data-step="2"> 
+        <div  id="progressTarget" class="explorationWrapper w400" :style= "[consent ? {height: '100vh'} : {height: 0}]"   data-step="2"> 
           <explore v-if="consent" @toggleForm="toggleForm" />
         </div>
 
         
-        <div id="addTarget" class="formWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
+        <div id="addTarget" class="formWrapper w400" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
           <memoryForm
             v-if="consent && newMemory.showForm"
             @close="toggleForm(false)"/>
@@ -73,45 +66,92 @@
 
 
 
-   <!-- TESTPATH: DATA -- QUESTION -- DISCOURSE -->
-      <template v-else-if="testPath == 'data-question-discourse'">
+   <!-- SEPARATED -->
+      <template v-else-if="testPath == 'separated'">
         <div slot="graphic" class="visWrapper"> 
         <vis
           :progress="progress"
           :consent="consent"
-          @demoClick="highlightConsent" />
+          :display="testPath" />
       </div>
 
-        <div class="introWrapper" data-step="1">  
+        <div class="introWrapper w600" data-step="1">  
           <h1>corona<br /><span>memories</span></h1>
-          <p class="larger"> Numbers alone can not stories do not tell stories. You can.</p>
-          <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the human stories behind the numbers?</p>
+          <p class="larger">How do we remember the pandemic?</p>
+          <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
           <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
-            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#addTarget')">
+            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
             </v-btn>
-            <p v-if="clickedDemo && !consent">You have to consent first.</p>
+            <p style="margin-top: 15px">
+              <a href="https://www.designinformatics.org/" target="_blank"><img class="logo" src="../assets/ed.png" style="width: 200px"/></a><br>
+              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%"/></a>
+            </p>
+        </div>
+
+
+         
+        <div  id="progressTarget" class="explorationWrapper w600" :style= "[consent ? {'min-height': '100vh'} : {height: 0}]"   data-step="2"> 
+          <explore @toggleForm="toggleForm" display="list" />
+          <memoryList />
+          <v-btn block style="width: 99%" color="primary" elevation="2"  @click="toggleForm">
+            <v-icon style="margin-right: 5px">mdi-tooltip-plus-outline</v-icon>Add your story
+          </v-btn>
         </div>
         
         
-        <div v-if="consent" id="addTarget" class="formWrapper" data-step="2">
+        <div id="addTarget" class="formWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
           <memoryForm
             v-if="newMemory.showForm"
+            :display="testPath"
             @close="toggleForm(false)"/>
-            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
+<!--            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              Explore other people's stories.
-            </v-btn>
+            </v-btn>-->
+      </div>
+      </template>
+
+
+         <!-- CONTEXTUAL -->
+      <template v-else-if="testPath == 'contextual'">
+        <div slot="graphic" class="visWrapper"> 
+        <vis
+          :progress="progress"
+          :consent="consent"
+          :display="testPath"
+          @demoClick="highlightConsent"  />
       </div>
 
-      <div class="animatorWrapper" data-step="3"></div> 
+        <div class="introWrapper w400" data-step="1">  
+          <h1>corona<br /><span>memories</span></h1>
+          <p class="larger">What are the measures & policy responses connected to data about the pandemic?</p>
+          <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the events behind the numbers?</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+            <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
+              <v-icon small>mdi-check-circle</v-icon>
+             I agree, show me
+            </v-btn>
+            <p v-if="clickedDemo && !consent">Please consent first.</p>
+            <p style="margin-top: 15px">
+              <a href="https://www.designinformatics.org/" target="_blank"><img class="logo" src="../assets/ed.png" style="width: 200px"/></a><br>
+              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%"/></a>
+            </p>
+        </div>
 
-        <div v-if="consent" id="progressTarget" class="explorationWrapper" data-step="4" style="margin-bottom: 100vh;"> 
-          <explore @toggleForm="toggleForm" />
+        <div class="animatorWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]"></div> 
+
+        <div  id="progressTarget" class="explorationWrapper w400" :style= "[consent ? {height: '100vh'} : {height: 0}]"   data-step="2"> 
+          <explore v-if="consent" :display="testPath" @toggleForm="toggleForm" />
         </div>
 
         
+        <div id="addTarget" class="formWrapper w400" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
+          <memoryForm
+            v-if="consent && newMemory.showForm"
+            @close="toggleForm(false)"/>
+        </div>
       </template>
 
 
@@ -146,6 +186,7 @@ import interactionService from '@/services/interactionService'
 
 //get components
 import memoryForm from './memoryForm'
+import memoryList from './memoryList'
 import explore from './explore'
 import counter from './counter'
 import vis from './vis'
@@ -157,6 +198,7 @@ export default {
     memoryForm,
     counter,
     explore,
+    memoryList,
     vis
   },
 
@@ -168,13 +210,16 @@ export default {
       steps: Array(3).fill(0),
       progress: 0,
       ribbonText: "Help our research",
+      initialClickOnAddButton: false,
       clickedDemo: false,
     }
   },
 
   computed: {
+    dimensions: function() {return this.$store.state.dimensions},
     cases:      function() {return this.$store.state.cases},
     newMemory:   function() {return this.$store.state.newMemory},
+    context:   function() {return this.$store.state.context},
     memories:   function() {return this.$store.state.memories},
     testPath:   function() {return this.$store.state.session.path},
     session: function() { return this.$store.getters.session.hash},
@@ -190,9 +235,7 @@ export default {
   },
  
   mounted () {
-    this.mounted = true;
-
-    
+    this.mounted = true;    
       window.setInterval(() => {
         if (this.ribbonText == "Help our research") {
           this.ribbonText = "Do our survey"
@@ -211,14 +254,14 @@ export default {
     this.consent = true
     interactionService.sendInteraction({event: 'consent'})
 
-      switch(this.testPath) {
+      /*switch(this.testPath) {
         case "data-discourse-question":
           this.explore = true;
           break;
         case "data-question-discourse": 
           this.$store.commit("toggleForm",true)
         break;
-    } 
+    } */
       
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
         this.$vuetify.goTo(target, {duration: 2000}); //then scroll to them
@@ -230,18 +273,17 @@ export default {
     },
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
-      direction //maybe we need this later
+      
       
       switch(element.className) {
         case "introWrapper": 
           this.progress = 0
           break
       }
-      if(element.className == "formWrapper") {
-        this.$store.commit("toggleNewMemoryDatepicker",true)
-      } else {
-        this.$store.commit("toggleNewMemoryDatepicker",false)
-      }
+
+      if(direction == 'up' && element.className.includes('explorationWrapper')) this.$store.commit("toggleNewMemoryDatepicker",false)
+      if(direction == 'down' && element.className.includes('formWrapper') && this.initialClickOnAddButton) this.$store.commit("toggleNewMemoryDatepicker",true)
+
       this.currentStepId = element.dataset.step //store current step in data
     },
 
@@ -257,6 +299,7 @@ export default {
     },
 
     toggleForm: function() { //using an own method instead of inline assignment to stay sane
+      this.initialClickOnAddButton = true
       interactionService.sendInteraction({event: (this.newMemory.showForm) ? 'hide' : 'show', element: "memoryForm"})
       if(!this.newMemory.showForm) {
         this.$store.commit("toggleForm",true)
@@ -283,20 +326,19 @@ export default {
   padding: 40px 0px 0px 30px;
   z-index: 99;
   position: relative;
-  width: 400px;
+  
 }
 
 .introWrapper {
   height: 100vh;
 }
 
+.w400 {
+  width: 400px;
+}
 
-
-
-
-.hidden {
-   margin-left: -400px !important;
-  padding-right: 400px !important;
+.w600 {
+  width: 600px;
 }
 
 .drawerToggle {
