@@ -1,11 +1,12 @@
 <template>
     <v-card
       elevation="2"
-      max-width="500"
       min-width="400"
+      max-width="560"
       id="top"
       light
-      class="mx-auto">
+      style="margin: 0px;"
+      class="mx-left">
 
       
       <v-card-text v-if="returnID" style="padding-top: 0px">
@@ -142,7 +143,8 @@ export default {
       datepicker: false,
       showHashtags: 0,
       showDatehelp: false,
-      roughDate: "foobar",
+      roughDate: null,
+      initial: 0, //hacky counter for list view
       returnID: null,
       isFormValid: false,
       rules: {
@@ -155,6 +157,7 @@ export default {
 
   props: {
     country: String,
+    display: String,
   },
 
   computed: {
@@ -188,12 +191,22 @@ export default {
 
     exactDate: {
       set: function() {this.$store.commit('toggleNewMemoryExactDate')},
-      get: function() {return this.$store.state.newMemory.exactDate}
+      get: function() {
+        if(this.display == 'separated') {
+          return true
+        } else {
+          return this.$store.state.newMemory.exactDate
+        }  
+      }
     },
 
     date: {
-      set: function(newDate) {this.$store.commit('setNewMemoryDate',this.parseDate(newDate))},
-      get: function() {return this.formatDate(this.$store.state.newMemory.date)}
+      set: function(newDate) {
+        this.$store.commit('setNewMemoryDate',this.parseDate(newDate))
+        },
+      get: function() {
+        return this.formatDate(this.$store.state.newMemory.date)
+        }
     },
 
     /*roughDate: {
@@ -206,7 +219,10 @@ export default {
 
     displayDate: {
       set: function(newDate) {console.log(newDate)/*,this.date = this.formatDate(newDate)*/},
-      get: function() {return (this.exactDate) ? this.formatDate(this.date) : this.getRoughDate(this.date)}
+      get: function() {
+        console.log(this.date)
+        return (this.exactDate) ? this.formatDate(this.date) : this.getRoughDate(this.date)
+        }
     },
 
 

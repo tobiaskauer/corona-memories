@@ -1,6 +1,14 @@
 <template>
     <div>
-          <p><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
+          <div v-if="display == 'list'">
+            <v-btn block color="primary" elevation="2"  @click="$emit('toggleForm')">
+            <v-icon style="margin-right: 5px">mdi-tooltip-plus-outline</v-icon>Add your story
+          </v-btn>
+          <p style="margin-top: 20px;"><strong>Select countries or hashtags to filter memories.</strong></p>
+          </div>
+
+          <p v-else-if="display == 'embedded'"><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
+          <p v-else>Select a country to see measures and responses.</p>
           <v-autocomplete
             :items="countries"
             v-model="currentCountry"
@@ -16,13 +24,25 @@
               :key="'hashtag-'+i"
               @click="activeHashtag = hashtag.tag">{{hashtag.tag}} </v-chip>
           </p>
-          <v-btn color="primary" elevation="2" @click="$emit('toggleForm')">
+          
+          <div v-if="display == 'embedded'">
+          <v-btn  color="primary" elevation="2"  @click="$emit('toggleForm')">
             <v-icon style="margin-right: 5px">mdi-tooltip-plus-outline</v-icon>Add your story
           </v-btn>
           <v-btn color="primary" outlined small elevation="2" @click="randomMemory" style="margin-top: 10px">
             <v-icon small style="margin-right: 5px">mdi-message-text</v-icon>Show random memory
           </v-btn><br />
           <v-btn v-if="$store.state.activeMemories.length > 0" plain x-small @click="hideMemories" >Hide all</v-btn>
+          </div>
+
+          <div v-else-if="display == 'contextual'">
+          <v-btn color="primary" outlined small elevation="2" @click="randomMemory" style="margin-top: 10px">
+            <v-icon small style="margin-right: 5px">mdi-message-text</v-icon>Show random
+          </v-btn><br />
+          <v-btn v-if="$store.state.activeMemories.length > 0" plain x-small @click="hideMemories" >Hide all</v-btn>
+          </div>
+
+
         </div>
 </template>
 
@@ -37,6 +57,10 @@ export default {
   name: 'App',
   components: {
 
+  },
+
+  props: {
+    display: String,
   },
 
   data () {
@@ -89,8 +113,6 @@ export default {
   },
 
   methods: {
-
-
     randomMemory: function() {
       interactionService.sendInteraction({event: 'randomMemory'})
       let inactiveMemories = this.memories.map(memory => memory.id).filter(id => !this.activeMemories.map(memory => memory.id).includes(id))
