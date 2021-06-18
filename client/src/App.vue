@@ -16,7 +16,7 @@ export default {
 
   data () {
     return {
-      
+        chosenPath: null
     }
   },
 
@@ -24,14 +24,17 @@ export default {
   },
 
   created() {
-    let testPaths = ['data-discourse-question','data-question-discourse']
-    let chosenPath = testPaths[Math.floor(Math.random() * 2)] //TODO Get from localStorage (to have people keep their chosen option
-    chosenPath = 'data-discourse-question' // CODE HARD WHILE BETAing
+    let testPaths = ['embedded','separated','contextual']
+    this.chosenPath = testPaths[Math.floor(Math.random() * 2)] //TODO Get from localStorage (to have people keep their chosen option
+    this.chosenPath = 'contextual' // CODE HARD WHILE BETAing
+    //this.chosenPath = 'embedded' // CODE HARD WHILE BETAing
+    this.$store.commit('setSession',{hash: nanoid(), path: this.chosenPath})
+    //this.chosenPath = 'data-discourse-question' // CODE HARD WHILE BETAing
 
     window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
     this.$store.dispatch('setCountries')
     this.$store.dispatch('setCurrentCountry',"World")
-    this.$store.commit('setSession',{hash: nanoid(), path: chosenPath})
+    this.$store.commit('setSession',{hash: nanoid(), path: this.chosenPath})
     window.addEventListener('beforeunload',  this.endSession)
 
   },
@@ -48,7 +51,8 @@ export default {
       let height = Math.min(...[800,window.innerHeight])
         this.$store.dispatch('setDimensions', {
           width: window.innerWidth,
-          height: height
+          height: height,
+          left: (this.chosenPath == 'separated') ? 600 : 400 //make left col bigger if viewing list of comments
         })
     },
 

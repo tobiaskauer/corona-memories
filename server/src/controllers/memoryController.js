@@ -47,9 +47,9 @@ module.exports = {
     try {
       
       const countries = await Memory.findAll({
-        attributes: ['country',[Sequelize.fn('COUNT', Sequelize.col("country")), "n_memories"]],
+        attributes: ['country',[Sequelize.fn('COUNT', Sequelize.col("country")), "count"]],
         group: ['country'],
-        order: [[Sequelize.literal('n_memories'), 'DESC']]
+        order: [[Sequelize.literal('count'), 'DESC']]
       });
 
       res.send(countries)
