@@ -1,21 +1,20 @@
 module.exports = (sequelize, DataTypes) =>
-  sequelize.define('Context', {
-    ID: {
+  sequelize.define('Survey', {
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    country: {
+    hash: {
       type: DataTypes.STRING,
     },
-    /*weight: {
-      type: DataTypes.INTEGER,
-      defaultValue: '1'
-    },*/
-    category: {
+    survey: {
+      type: DataTypes.STRING,
+    },
+    checkboxes: {
         type: DataTypes.STRING,
     },
-    date: {
-      type: DataTypes.DATEONLY,
+    comment: {
+        type: DataTypes.STRING,
     },
   })

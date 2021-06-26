@@ -17,10 +17,10 @@ module.exports = (sequelize, DataTypes) =>
     hash: {
       type: DataTypes.STRING,
     },
-    weight: {
+    /*weight: {
       type: DataTypes.INTEGER,
       defaultValue: '1'
-    },
+    },*/
     exactDate: {
       type: DataTypes.BOOLEAN,
     },

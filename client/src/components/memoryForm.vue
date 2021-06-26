@@ -20,8 +20,43 @@
         <p>
           <strong>It will be visible soon.</strong> In the meantime, if you have a minute and want to help our research, please consider filling out our <a :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">survey</a>.
         </p> 
-        <v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank">Fill out Survey</v-btn>
-        <v-btn small outlined color="primary" block @click="blankify" style="margin-top: 10px;">Add another story first</v-btn>
+        <hr style="margin-bottom: 10px;" />
+        <!--<v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank">Fill out Survey</v-btn>-->
+         <v-form>
+                        <p><strong>What do you find most interesting in this visualization?</strong></p>
+                        <v-checkbox
+                        class="ma-0 pa-0"
+                        v-for="checkbox in checkboxes"
+                        :key="checkbox.key"
+                        v-model="checkbox.checked"
+                        value="1"
+                        dense
+                        :label="checkbox.text"
+                        type="checkbox"
+                        ></v-checkbox>
+                        <v-textarea
+                        name="input-7-1"
+                        label=""
+                        outlined
+                        v-model="other"
+                        hint="Can you elaborate?"
+                    ></v-textarea>
+                    </v-form>
+                                        <template v-if="!surveyStatus">
+                        <v-btn
+                            style="margin-bottom: 100px;"
+                            block
+                            color="primary"
+                            @click="sendSurvey" 
+                            outlined>Submit
+                        </v-btn>
+                    </template>
+                    <template v-else>
+                        <v-alert text :type="surveyStatus.type">
+                            {{surveyStatus.text}}
+                        </v-alert>
+                    </template>
+        <v-btn small plain  color="primary" block @click="blankify" style="margin-top: 10px;">Add another story first</v-btn>
         
         <!--<v-alert
           border="left"
@@ -130,6 +165,7 @@
 <script>
 import MemoryService from '@/services/memoryService'
 import interactionService from '@/services/interactionService'
+import surveyService from '@/services/surveyService'
 import * as d3 from 'd3'
 
 export default {
@@ -143,10 +179,18 @@ export default {
       datepicker: false,
       showHashtags: 0,
       showDatehelp: false,
+      surveyStatus: null,
       roughDate: null,
       initial: 0, //hacky counter for list view
       returnID: null,
       isFormValid: false,
+      checkboxes: [
+        {text: "Reading other people’s story inspired me to share.", key: "inspiredByOthers", checked: false},
+        {text: "It feels good to talk about this.", key: "feelsGood", checked: false},
+        {text: "Because I think my story can help others.", key: "helpOthers", checked: false},
+        {text: "None of the above (please describe below)", key: "none", checked: false},
+      ],
+      other: "Can you elaborate?",
       rules: {
         notEmpty: [
           v => !!v || 'Please enter a memory!'
@@ -284,9 +328,34 @@ export default {
       }
     },
 
+        async sendSurvey() {
+        let surveyData = {
+            survey: 'submitting',
+            checkboxes: this.checkboxes.filter(checkbox => checkbox.checked).map(checkbox => checkbox.key).join(),
+            comment: (this.other != "Can you elaborate?") ? this.other : ""
+        }
+        try {
+        const response = await surveyService.sendSurvey(surveyData)
+        if(response.status == 200) {
+          this.surveyStatus = {
+              type: "success",
+              text: "Thank you! Your response was recorded."
+            } 
+        }
+      } catch (err) {
+        console.log(err)
+            this.surveyStatus = {
+              type: "error",
+              text: "Sorry, there was a problem."
+            }
+      } 
+      return null
+    },
+
     close: function() {
       this.$store.commit("toggleNewMemoryDatepicker", false)
       this.returnID = null
+      this.surveyStatus = null
       this.$emit('close')
     },
 

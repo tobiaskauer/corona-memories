@@ -1,15 +1,20 @@
 <template>
   <v-app :style= "[consent ? {position: 'static'} : {position: 'fixed'}]">
     <template v-if="cases && memories && countries && mounted">
-      <a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
+      <!--<a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
         <span>{{ribbonText}}</span>
-      </div></a>
+      </div></a>-->
       <ul class="stepnavi">
         <li v-for="e,i in steps" :key="i">
           <span v-if="i == currentStepId-1">&#9679;</span>
           <span v-else>&#9675;</span>
           </li>
       </ul>
+
+
+      
+        <survey v-if="consent" :display="testPath" />
+      
     
     <Scrollama
       class="scrollama"
@@ -48,11 +53,11 @@
         <div class="animatorWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]"></div> 
 
         <div  id="progressTarget" class="explorationWrapper w400" :style= "[consent ? {height: '100vh'} : {height: 0}]"   data-step="2"> 
-          <explore v-if="consent" @toggleForm="toggleForm" />
+          <explore display="embedded" v-if="consent" @toggleForm="toggleForm" />
         </div>
 
         
-        <div id="addTarget" class="formWrapper w400" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
+        <div id="addTarget" class="formWrapper w400" :style= "[consent ? {height: '90vh'} : {height: 0}]" data-step="3">
           <memoryForm
             v-if="consent && newMemory.showForm"
             @close="toggleForm(false)"/>
@@ -101,7 +106,7 @@
         </div>
         
         
-        <div id="addTarget" class="formWrapper" :style= "[consent ? {height: '100vh'} : {height: 0}]" data-step="3">
+        <div id="addTarget" class="formWrapper" :style= "[consent ? {height: '90vh'} : {height: 0}]" data-step="3">
           <memoryForm
             v-if="newMemory.showForm"
             :display="testPath"
@@ -156,13 +161,8 @@
 
 
 
-
-
-
-
-
-
     </Scrollama>
+
   </template>
 
   <!-- loading screen if not everything has loaded yet -->
@@ -188,6 +188,7 @@ import interactionService from '@/services/interactionService'
 import memoryForm from './memoryForm'
 import memoryList from './memoryList'
 import explore from './explore'
+import survey from './survey'
 import counter from './counter'
 import vis from './vis'
 
@@ -199,6 +200,7 @@ export default {
     counter,
     explore,
     memoryList,
+    survey,
     vis
   },
 
@@ -414,8 +416,10 @@ p.smaller {
   width: 100%;
   left: 0;
   height: 100%;  
-  z-index: -999
+  z-index: -990
 }
+
+
 .hashtags, .visWrapper, .formWrapper {
   pointer-events: all;
 }
