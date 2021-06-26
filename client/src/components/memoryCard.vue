@@ -6,13 +6,13 @@
     :width="width"
   >
     <div>
-      <v-btn v-if="display != 'separate'" style="position: absolute; right: 5px; top: 0px;" icon @click="close">
+      <v-btn v-if="display != 'separated'" style="position: absolute; right: 5px; top: 0px;" icon @click="close">
         <v-icon small color="black">mdi-close-circle</v-icon>
       </v-btn>
     </div>
     <v-card-text>
       <v-row dense>      
-        <v-col sm v-if="display = 'contextual'">
+        <!--<v-col sm v-if="display == 'contextual'">
           <v-btn
               x-small 
               fab
@@ -25,12 +25,12 @@
               {{weight}} <br />
               <v-icon color="black" small>mdi-heart</v-icon>
             </v-btn>
-        </v-col>
-        <v-col cols="10">
+        </v-col>-->
+        <v-col cols="12">
           <p class="topBar">
 
-            <em v-if="display == 'embedded'"> [anonymous], {{displayDate}}, {{memory.country}}</em>
-            <em v-if="display == 'contextual'">{{displayDate}}, {{memory.country}}</em>
+            <em v-if="display != 'contextual'"> [anonymous], {{displayDate}}, {{memory.country}}</em>
+            <em v-else>{{displayDate}}, {{memory.country}}</em>
 
 
             <template v-if="display == 'separated'">
@@ -157,7 +157,7 @@ export default {
       return rough+month+year
     },
 
-    async upvote(){
+    /*async upvote(){
       if(!this.liked) {
         InteractionService.sendInteraction({event: 'upvote', element: this.memory.id})
         try {
@@ -172,8 +172,7 @@ export default {
           console.log(err)
        }
       }
-
-    },
+    },*/
 
 
 
@@ -183,7 +182,7 @@ export default {
         this.reportText = "Click again to report this story to the website admin."
         this.reportClickCount++
       } else {
-              InteractionService.sendInteraction({event: 'report', element: this.memory.id})
+        InteractionService.sendInteraction({event: 'report', element: this.memory.id})
        try {
         MemoryService.flagMemory({id: this.memory.id, flagged: true}).then(response => {
           if(response.status == 200){

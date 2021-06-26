@@ -51,24 +51,21 @@ export default new Vuex.Store({
           radius: 4
         }
       })
+      
+      //let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([5,10])
+      let radius = d3.scaleLog().domain([2,500]).range([10,5])
 
-      let radius = d3.scaleLinear().domain(d3.extent(state.memories, d=>d.weight)).range([5,10])
       let memories = state.memories.map((memory) => {
+        
         let caseIndex = state.cases.findIndex(c => c.dateString == memory.dateString) //find cases that day
         memory.value = (caseIndex !== -1) ? state.cases[caseIndex].value : 0 //get value from there, otherwise assign 0
         memory.isMemory = true //to compare with fake memories when building a beeswarm
         memory.x = state.scales.x(memory.date) //get x position (based on date)
         memory.y = state.scales.y(memory.value) //get y position (based on case numbers that day)
         
-        memory.radius = radius(memory.weight) //get radius based on weight
+        //memory.radius = radius(memory.weight) //get radius based on weight
+        memory.radius = radius(state.memories.length) //get radius based on number of elements (after abandoning voting system)
         memory.scale = 1
-
-        /*if(i == 3) {
-          console.log("xPos: ", memory.x)
-          console.log("Date: ", memory.date)
-          console.log("Dimensions: ", state.dimensions)
-          console.log("----")
-        }*/
 
         //create organic shapes based on memory radis
         let wobbly = (v) => v + ((Math.random() * memory.radius/2) - memory.radius/4 )
@@ -239,12 +236,12 @@ export default new Vuex.Store({
       let bubbles
       if(session.path == 'contextual') { //based on current testing path, get either context info or "real" memories
         bubbles = (await contextService.getContexts({
-          attributes: [['date', 'dateString'], 'country', 'category', 'comment', 'weight', ['index', 'id']],
+          attributes: [['date', 'dateString'], 'country', 'category', 'comment', ['index', 'id']],
           country: context.state.currentCountry,
           })).data
       } else {
         bubbles = (await memoryService.getMemories({
-          attributes: [['date', 'dateString'], 'exactDate', 'country', 'comment', 'weight', 'id'],
+          attributes: [['date', 'dateString'], 'exactDate', 'country', 'comment', 'id'],
           country: context.state.currentCountry,
           flagged: false //don't include memories flagged for review
           })).data
@@ -262,8 +259,9 @@ export default new Vuex.Store({
 
     async setCountries (context) {
       //let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
-      let countryMemories = (context.state.session.path == 'embedded') ? (await memoryService.countryMemories()).data : (await contextService.countryContexts()).data
+      let countryMemories = (context.state.session.path != 'contextual') ? (await memoryService.countryMemories()).data : (await contextService.countryContexts()).data
 
+      console.log(context.state.session)
 
       let countries = (await caseService.getCountries()).data.map(e => {
         let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories

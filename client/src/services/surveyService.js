@@ -3,13 +3,13 @@ import store from '../store'
 
 
 export default {
-  sendInteraction (interaction) {
+  sendSurvey (survey) {
     let sessionDetails = store.getters.session
     
     Object.keys(sessionDetails).forEach(key => {
-      interaction[key] = sessionDetails[key]
+      survey[key] = sessionDetails[key]
     })
     //console.log(interaction)
-    return Api().post("sendInteraction", interaction)
+    return Api().post("sendSurvey", survey)
   },  
 }

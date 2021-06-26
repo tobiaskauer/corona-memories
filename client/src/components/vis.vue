@@ -139,7 +139,7 @@ export default {
       .force('charge', d3.forceManyBody().strength(1))
       .force('link', d3.forceLink().links(links)) 
       .force('collide', d3.forceCollide(this.boxWidth / 2)) //dont collide with other text labels, but be close to button.labels
-      for(let i = 0; i <= 10; i++) {
+      for(let i = 0; i <= 100; i++) {
         simulation.tick()
       }
 
