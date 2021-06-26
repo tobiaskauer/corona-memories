@@ -2,6 +2,8 @@ const MemoryController = require('./controllers/memoryController')
 const CaseController = require('./controllers/caseController')
 const InteractionController = require('./controllers/interactionController')
 const ContextController = require('./controllers/contextController')
+const SurveyController = require('./controllers/surveyController')
+
 const DebugController = require('./controllers/debugController')
 
 
@@ -22,4 +24,6 @@ module.exports = (app) => {
 
   app.post('/getContexts',ContextController.getContexts)
   app.post('/countryContexts',ContextController.countryContexts)
+
+  app.post('/sendSurvey',SurveyController.sendSurvey)
 }

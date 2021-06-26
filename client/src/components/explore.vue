@@ -9,6 +9,7 @@
 
           <p v-else-if="display == 'embedded'"><strong>Click the bubbles to read people’s stories.</strong><br />Select countries or hashtags to filter.</p>
           <p v-else>Select a country to see measures and responses.</p>
+          
           <v-autocomplete
             :items="countries"
             v-model="currentCountry"
