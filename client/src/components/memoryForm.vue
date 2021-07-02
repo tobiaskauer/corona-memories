@@ -18,12 +18,13 @@
         </v-btn>
         </v-card-title>  
         <p>
-          <strong>It will be visible soon.</strong> In the meantime, if you have a minute and want to help our research, please consider filling out our <a :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+returnID" target="_blank">survey</a>.
+          <strong>It will be visible soon.</strong>
+          Let us know a bit more about your answer.
         </p> 
         <hr style="margin-bottom: 10px;" />
         <!--<v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank">Fill out Survey</v-btn>-->
          <v-form>
-                        <p><strong>What do you find most interesting in this visualization?</strong></p>
+                        <p><strong>What motivated you to submit your story?</strong></p>
                         <v-checkbox
                         class="ma-0 pa-0"
                         v-for="checkbox in checkboxes"
@@ -36,10 +37,9 @@
                         ></v-checkbox>
                         <v-textarea
                         name="input-7-1"
-                        label=""
+                        label="Can you elaborate?"
                         outlined
                         v-model="other"
-                        hint="Can you elaborate?"
                     ></v-textarea>
                     </v-form>
                                         <template v-if="!surveyStatus">
@@ -185,12 +185,22 @@ export default {
       returnID: null,
       isFormValid: false,
       checkboxes: [
-        {text: "Reading other people’s story inspired me to share.", key: "inspiredByOthers", checked: false},
+        {text: "Reading other people’s stories inspired me to share.", key: "inspiredByOthers", checked: false},
         {text: "It feels good to talk about this.", key: "feelsGood", checked: false},
         {text: "Because I think my story can help others.", key: "helpOthers", checked: false},
         {text: "None of the above (please describe below)", key: "none", checked: false},
+
+
+        /*comment on the chart --> 
+        exporessing opinions --> wanted to share how i see things
+        sharing emotions --> wanted to share how i felt
+        adding anecdotal evidence --> 
+        ?? matching knowledges --> they made me think about my own experiencs
+        participate in public sensemaking
+        adding one's own story
+        sparking discussions --> ??*/
       ],
-      other: "Can you elaborate?",
+      other: "",
       rules: {
         notEmpty: [
           v => !!v || 'Please enter a memory!'

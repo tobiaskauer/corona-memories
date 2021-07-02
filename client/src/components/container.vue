@@ -1,9 +1,17 @@
 <template>
   <v-app :style= "[consent ? {position: 'static'} : {position: 'fixed'}]">
     <template v-if="cases && memories && countries && mounted">
-      <!--<a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
+
+      <a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
         <span>{{ribbonText}}</span>
-      </div></a>-->
+      </div></a>
+
+      <router-link to="/participantSheet">
+        <div class="ear">
+          <span>about</span>
+        </div>
+      </router-link>
+      
       <ul class="stepnavi">
         <li v-for="e,i in steps" :key="i">
           <span v-if="i == currentStepId-1">&#9679;</span>
@@ -362,8 +370,8 @@ button, .v-input, .introWrapper {
 .ear {
   position: fixed;
   text-align: center;
-  top: 40px; 
-  right: -50px;
+  top: 15px; 
+  right: -70px;
   z-index: 99;
   font-family: 'Roboto Slab', serif;
   height: 40px;

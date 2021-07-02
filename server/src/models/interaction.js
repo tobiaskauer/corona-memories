@@ -8,6 +8,9 @@ module.exports = (sequelize, DataTypes) =>
     hash: {
       type: DataTypes.STRING,
     },
+    path: {
+      type: DataTypes.STRING,
+    },
     event: {
       type: DataTypes.STRING,
     },

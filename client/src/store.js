@@ -109,7 +109,9 @@ export default new Vuex.Store({
     setSession(state, payload)          {state.session = payload},
     setCases(state, payload)          {state.cases = payload},
     setCurrentCountry(state, payload) {state.currentCountry = payload},
-    setCountries(state,payload)       {state.countries = payload},
+    setCountries(state,payload)       {
+      state.countries = payload
+    },
     setActiveHashtag(state,payload)    {state.activeHashtag = payload},
     setActiveMemories(state,payload) {
       if(payload == null) {
@@ -233,8 +235,30 @@ export default new Vuex.Store({
       
       let session = context.state.session
 
-      let bubbles
-      if(session.path == 'contextual') { //based on current testing path, get either context info or "real" memories
+      //this could have been done faster and with less db requests but.... look at me... who am I fooling... it's getting out of hand anyway
+      let contexts = (await contextService.getContexts({
+        attributes: [['date', 'dateString'], 'country', 'category', 'comment', ['index', 'id']],
+        country: context.state.currentCountry,
+        })).data
+
+      let memories = (await memoryService.getMemories({
+        attributes: [['date', 'dateString'], 'exactDate', 'country', 'comment', 'id'],
+        country: context.state.currentCountry,
+        flagged: false //don't include memories flagged for review
+        })).data
+
+        //across views (e.g. embedded / contextual) have similar amounts of bubbles
+        let smallerBucket = Math.min(contexts.length, memories.length) //are there fewer memories or contexts
+        let threshold = 100//have at least X items there
+        let numberOfBubbles = Math.max(smallerBucket, threshold) 
+        let bubbles = (session.path == 'contextual') ? contexts : memories
+        
+        while(bubbles.length > numberOfBubbles) {
+          let r = Math.floor(Math.random() * bubbles.length)
+          bubbles.splice(r, 1)
+        }
+
+     /* if(session.path == 'contextual') { //based on current testing path, get either context info or "real" memories
         bubbles = (await contextService.getContexts({
           attributes: [['date', 'dateString'], 'country', 'category', 'comment', ['index', 'id']],
           country: context.state.currentCountry,
@@ -245,7 +269,7 @@ export default new Vuex.Store({
           country: context.state.currentCountry,
           flagged: false //don't include memories flagged for review
           })).data
-      }
+      }*/
 
         context.commit('setMemories',bubbles) //write memories to state
         context.commit('setHashtags',bubbles)  //also compute new hashtags from these memories
@@ -260,8 +284,6 @@ export default new Vuex.Store({
     async setCountries (context) {
       //let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
       let countryMemories = (context.state.session.path != 'contextual') ? (await memoryService.countryMemories()).data : (await contextService.countryContexts()).data
-
-      console.log(context.state.session)
 
       let countries = (await caseService.getCountries()).data.map(e => {
         let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories
