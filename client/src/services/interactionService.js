@@ -9,6 +9,7 @@ export default {
     Object.keys(sessionDetails).forEach(key => {
       interaction[key] = sessionDetails[key]
     })
+
     //console.log(interaction)
     return Api().post("sendInteraction", interaction)
   },  

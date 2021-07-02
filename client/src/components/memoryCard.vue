@@ -205,7 +205,8 @@ export default {
 
 <style scoped>
   .memoryCard {
-    background: linear-gradient(116.6deg, #FA5E2D 36.3%, #E63700 69.74%);
+    background: linear-gradient(116.6deg, rgba(250, 94, 45, 0.9)  36.3%, rgba(230, 55, 0, 0.9) 69.74%);
+
   }
 
   .memoryCard p.topBar {

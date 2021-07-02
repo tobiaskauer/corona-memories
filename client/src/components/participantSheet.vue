@@ -2,6 +2,9 @@
       <v-app>
     <div class="introWrapper" data-step="1">  
         <h1><router-link to="/">corona<br /><span>memories</span></router-link></h1>
+        <h2>About this research</h2>
+        <p>We are interested how people read and engage with different kinds of contextual information in data visualizations.<br>If you have comments or suggestions about this research please contact Tobias Kauer at T.Kauer@ed.ac.uk.</p>
+
         <h2>Participant Information Sheet</h2>
         <p>
             <strong>Project Title</strong>: Corona Memories<br />
@@ -12,7 +15,7 @@
     <p>This study was certified according to the Informatics Research Ethics Process, RT number 5766. Please take time to read the following information carefully. You should keep this page for your records.</p>
     <p><strong><em>Who are the researchers?</em></strong> The study is being conducted by Dr. Benjamin Bach and Tobias Kauer at the University of Edinburgh and Dr. Marian Dörk, University of Applied Sciences Potsdam.</p>
     <p><strong><em>What is the purpose of the study?</em></strong> This study aims to understand  how people read data visualizations and which stories they want to tell about the data in the visualization. 
-    <p><strong><em>Why have I been asked to take part?</em></strong>You have visited the website http://coronamemories.tobiaskauer.org.<p>
+    <p><strong><em>Why have I been asked to take part?</em></strong> You have visited the website https://coronamemories.tobiaskauer.org.<p>
 
     <p><strong><em>Do I have to take part?</em></strong> Your participation and use of the website is entirely voluntary and you may stop using it at any time and for any reason. Your rights will not be affected. If you wish to withdraw, contact Tobias Kauer (T.Kauer@ed.ac.uk) and state which comment you wish to remove. If you stop participating at any point, data collection will end, but data already collected will be retained in anonymous form. We will stop using your data in any publications or presentations submitted after you have withdrawn consent. However, we will keep copies of your original consent, and of your withdrawal request.</p>
     <p><strong><em>What will happen if I decide to take part? </em></strong>We will record your activity (timestamps and mouse events) on the website as well as collect your shared stories. If you decide to take part in the online survey, we will ask you about your experience viewing the visualization on the website mentioned above and may use your answers in future research publications. If you choose to submit a story to the website, we may use your submission in future research publications. </p>

@@ -16,7 +16,7 @@
       stroke="black"/>
     
     <!-- beeswarm plot -->
-    <g class="beeswarm" v-if="beeswarm[0]">
+    <g class="beeswarm" v-if="beeswarm[0] && iHaveWaitedASecondForTheDataToBeThereBecauseSomehowThisFixesThings">
       <g class="tutorial" v-if="!consent && progress < 1 && display != 'separated'">
         <rect width="200" height="50" fill="rgba(254,232,194,.7)" :x="beeswarm[0].x-255" :y="beeswarm[0].y-75" />
         <line stroke="#FA5E2D" stroke-width=".5" :x1="beeswarm[0].x-5" :y1="beeswarm[0].y-5" :x2="beeswarm[0].x-50" :y2="beeswarm[0].y-50" />
@@ -100,6 +100,7 @@ export default {
   data () {
     return {
       mounted: false,
+      iHaveWaitedASecondForTheDataToBeThereBecauseSomehowThisFixesThings: false,
       visibleHashtags: 10,
       opacity: 0.8, //circle opacity when not hoveredü
       lineGenerator: d3.line().x(d => d.x).y(d => d.y),
@@ -143,8 +144,6 @@ export default {
         simulation.tick()
       }
 
-      
-
 
       //bounding box for lazy people
       links.forEach(link => {
@@ -174,6 +173,10 @@ export default {
 
   mounted() {
     this.mounted = true
+    this.$nextTick(() => {
+      setTimeout(() => {this.iHaveWaitedASecondForTheDataToBeThereBecauseSomehowThisFixesThings = true}, 1)
+    }) 
+    
     
   },
 

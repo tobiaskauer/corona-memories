@@ -16,6 +16,7 @@
 
 <script>
 import memoryCard from './memoryCard.vue'
+import interactionService from '@/services/interactionService'
 
 export default {
   components: {
@@ -25,7 +26,8 @@ export default {
   data () {
     return {
         sort: 'date',
-        desc: true
+        desc: true,
+        scrollLogIntervall: 5000,
     }
   },
 
@@ -54,9 +56,17 @@ export default {
   },
  
   mounted () {
+      this.logScroll();
   },
 
   methods: {
+      logScroll: function() { //intervall for logging scroll position every X seconds. (yeah. this could have been setIntervall.)
+        setTimeout(() => {
+            interactionService.sendInteraction({event: 'scrollPosition', element: window.scrollY})
+            this.logScroll()
+        },this.scrollLogIntervall)
+      },
+
       changeSort: function(type) {
           if(type == 'date') {
               this.sort = 'date'
