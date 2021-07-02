@@ -8,7 +8,7 @@
             <v-card-text style="padding-top: 0;">
                 <div ref="visibleSecond" >
                     <p @click="activeStep = 'visibleThird'" style="cursor: pointer; padding: 15px; margin: 0;color: #FA5E2D; text-align: center">Help our research. <strong>Fill out the survey</strong></p>
-                    <div v-if="status" style="position: absolute; right: 20px; top: 10px;">
+                    <div style="position: absolute; right: 20px; top: 10px;">
                         <v-btn icon @click="close">
                             <v-icon center color="lightgrey" small>mdi-close-circle</v-icon>
                         </v-btn>
@@ -30,10 +30,10 @@
                         ></v-checkbox>
                         <v-textarea
                         name="input-7-1"
-                        label=""
+                        label="How did the responses and data help you better understand the pandemic?"
                         outlined
                         v-model="comment"
-                        hint="Why is this interesting to you (optional)"
+                        
                     ></v-textarea>
                     </v-form>
                     <template v-if="!status">
@@ -69,11 +69,11 @@ export default {
         mounted: false,
         activeStep: null,
         status: false,
-        comment: "Why is this interesting to you (optional)",
+        comment: "",
         options: [
             {response: "The case numbers and how they change over time.", key: "caseNumbers", checked: false},
-            {response: "The responses and how they relate to the numbers.", key: "responseRelation", checked: false},
-            {response: "Just the responses.", key: "justReponses", checked: false},
+            {response: "Exploring and reading the responses.", key: "responseRelation", checked: false},
+         //   {response: "Just the responses.", key: "justReponses", checked: false},
             {response: "I do not find it interesting.", key: "nothing", checked: false},
         ],
     }
@@ -112,7 +112,7 @@ export default {
         let surveyData = {
             survey: 'reading',
             checkboxes: this.options.filter(checkbox => checkbox.checked).map(checkbox => checkbox.key).join(),
-            comment: (this.comment != "Why is this interesting to you (optional)") ? this.comment : ""
+            //comment: (this.comment != "Why is this interesting to you (optional)") ? this.comment : ""
         }
         try {
         const response = await surveyService.sendSurvey(surveyData)

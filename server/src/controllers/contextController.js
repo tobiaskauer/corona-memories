@@ -7,12 +7,12 @@ module.exports = {
     async getContexts (req, res) {    
         let options = {
           attributes: (req.body.attributes) ? req.body.attributes : null,
-          where: {}
+          where: {},
+          limit: (req.body.limit) ? req.body.limit : null,
         }
     
         if(req.body.country) { //if a country is passed
           options.where.country = req.body.country
-          options.limit = 200
         }
     
         if(req.body.country == "World") { //special country "world" --> ignore where clause
@@ -23,7 +23,7 @@ module.exports = {
         
         try {
           const context = await Context.findAll(options);
-          console.log("foo")
+          
           res.send(context)
         } catch (err) {
           console.log(err)
