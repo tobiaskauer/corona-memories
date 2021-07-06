@@ -188,7 +188,7 @@ export default {
         {text: "Reading other people’s stories inspired me to share.", key: "inspiredByOthers", checked: false},
         {text: "It feels good to talk about this.", key: "feelsGood", checked: false},
         {text: "Because I think my story can help others.", key: "helpOthers", checked: false},
-        {text: "None of the above (please describe below)", key: "none", checked: false},
+        {text: "None of the above (please describe below)", key: "none", checked: false}, //please describe below
 
 
         /*comment on the chart --> 
