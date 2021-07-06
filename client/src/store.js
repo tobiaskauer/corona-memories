@@ -59,6 +59,14 @@ export default new Vuex.Store({
         
         let caseIndex = state.cases.findIndex(c => c.dateString == memory.dateString) //find cases that day
         memory.value = (caseIndex !== -1) ? state.cases[caseIndex].value : 0 //get value from there, otherwise assign 0
+
+        /*console.log("value: ", memory.value)
+        console.log("caseIndex: ", caseIndex)
+        console.log("caseIndex: ", memory.dateString)
+        console.log("---")*/
+        
+
+
         memory.isMemory = true //to compare with fake memories when building a beeswarm
         memory.x = state.scales.x(memory.date) //get x position (based on date)
         memory.y = state.scales.y(memory.value) //get y position (based on case numbers that day)
@@ -119,8 +127,8 @@ export default new Vuex.Store({
       } else {
         let index = state.activeMemories.findIndex(id => id == payload)
         if(index === -1) { //add if it does noes exist
-          state.activeMemories.push(payload) //use this to display several active memories
-          //state.activeMemories = [payload] //use this to only have one active memory
+          //state.activeMemories.push(payload) //use this to display several active memories
+          state.activeMemories = [payload] //use this to only have one active memory
         } else {
           state.activeMemories.splice(index,1) //delete if it already exists (clicked on close/clicked on bubble)
         }
@@ -199,7 +207,7 @@ export default new Vuex.Store({
     setHashtags(state,payload) {
       let tags
       if(state.session.path == 'contextual') {
-        tags = payload.map(e => e.category) //array of categories
+        tags = payload.map(e => e.category).filter(tag=>tag) //array of categories (filtered without nulls)
       } else {
         tags = payload.map(memory => memory.comment.match(/#[a-z]+/gi)).flat().filter(tag => tag) //find all comments with hashtags
       }
@@ -299,7 +307,7 @@ export default new Vuex.Store({
       
 
       //let countries = ['World','Germany','France','Italy','United States','United Kingdom','Switzerland']
-      countries.sort((a,b) => b.n_memories - a.n_memories)
+      if (context.state.session.path != 'contextual') countries.sort((a,b) => b.n_memories - a.n_memories)
       context.commit('setCountries',countries)
     },
 
