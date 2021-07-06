@@ -1,16 +1,49 @@
 <template>
   <v-app :style= "[consent ? {position: 'static'} : {position: 'fixed'}]">
     <template v-if="cases && memories && countries && mounted">
+      <v-overlay id="about" z-index="1000" v-if="showAbout">
+        <v-card elevation="4" light style="width: 80%; min-width: 400px; height: 80%; margin: 5% auto; overflow-y: scroll">
+          <v-system-bar color="primary" dark>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="showAbout = false">
+          <v-icon color="lightgrey" small>mdi-close-circle</v-icon>
+        </v-btn>
+          </v-system-bar>
+          <v-card-title><h2>About this research</h2></v-card-title>
+          <v-card-text>
+            <p>We are interested how people read and engage with different kinds of contextual information in data visualizations.<br>If you have comments or suggestions about this research please contact Tobias Kauer at T.Kauer@ed.ac.uk.</p>
+            <h3>Participant Information Sheet</h3>
+            <p>
+              <strong>Project Title</strong>: Corona Memories<br />
+              <strong>Principal Investigator</strong>: Dr. Benjamin Bach<br />
+              <strong>Researchers</strong>: Tobias Kauer, Dr. Marian Dörk<br>
+            </p>
 
-      <a v-if="consent" :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank"><div class="ear">
-        <span>{{ribbonText}}</span>
-      </div></a>
+            <p>This study was certified according to the Informatics Research Ethics Process, RT number 5766. Please take time to read the following information carefully. You should keep this page for your records.</p>
+            <p><strong><em>Who are the researchers?</em></strong> The study is being conducted by Dr. Benjamin Bach and Tobias Kauer at the University of Edinburgh and Dr. Marian Dörk, University of Applied Sciences Potsdam.</p>
+            <p><strong><em>What is the purpose of the study?</em></strong> This study aims to understand  how people read data visualizations and which stories they want to tell about the data in the visualization. 
+            <p><strong><em>Why have I been asked to take part?</em></strong> You have visited the website https://coronamemories.tobiaskauer.org.<p>
 
-      <router-link to="/participantSheet">
-        <div class="ear">
+            <p><strong><em>Do I have to take part?</em></strong> Your participation and use of the website is entirely voluntary and you may stop using it at any time and for any reason. Your rights will not be affected. If you wish to withdraw, contact Tobias Kauer (T.Kauer@ed.ac.uk) and state which comment you wish to remove. If you stop participating at any point, data collection will end, but data already collected will be retained in anonymous form. We will stop using your data in any publications or presentations submitted after you have withdrawn consent. However, we will keep copies of your original consent, and of your withdrawal request.</p>
+            <p><strong><em>What will happen if I decide to take part? </em></strong>We will record your activity (timestamps and mouse events) on the website as well as collect your shared stories. If you decide to take part in the online survey, we will ask you about your experience viewing the visualization on the website mentioned above and may use your answers in future research publications. If you choose to submit a story to the website, we may use your submission in future research publications. </p>
+            <p><strong><em>Are there any risks associated with taking part?</em></strong> There are no significant risks associated with participation. </p>
+            <p><strong><em>Are there any benefits associated with taking part?</em></strong> You will support publicly funded research on creating interfaces for commenting on visualizations.</p>
+            <p><strong><em>What will happen to the results of this study? </em></strong> The results of this study may be summarised in published scientific articles, reports and presentations. With your consent, short extracts of submitted stories and written feedback from the survey may be quoted in research papers to support key findings of  our research. Your data may be archived for a minimum of two years. None of the publications will provide any monetary benefit to the research team and we are happy to send you a copy of any publication that emerged out of our study.</p>
+            <p><strong><em>WData protection and confidentiality.</em></strong> Your data will be processed in accordance with Data Protection Law. Your data will be referred to by a unique participant number rather than by name. Your data will only be viewed by the research team stated above. All electronic data will be stored on a password-protected encrypted computer, on the School of Informatics’ secure file servers, or on the University’s secure encrypted cloud storage services (DataShare, ownCloud, or Sharepoint).</p>
+            <p><strong><em>What are my data protection rights?</em></strong> The University of Edinburgh is a Data Controller for the information you provide. You have the right to access information held about you. Your right of access can be exercised in accordance with the Data Protection Law. You also have other rights including rights of correction, erasure and objection. For more details, including the right to lodge a complaint with the Information Commissioner’s Office, please visit www.ico.org.uk. Questions, comments and requests about your personal data can also be sent to the University Data Protection Officer at dpo@ed.ac.uk. </p>
+            <p><strong><em>Who can I contact?</em></strong> If you have any further questions about the study, please contact the lead researcher, Tobias Kauer at T.Kauer@ed.ac.uk. If you wish to make a complaint about the study, please contact inf-ethics@inf.ed.ac.uk. When you contact us, please provide the study title and detail the nature of your complaint.</p>
+            <p><strong><em>Updated information.</em></strong> If the research project changes in any way, an updated Participant Information Sheet will be made available on https://web.inf.ed.ac.uk/infweb/research/study-updates.</p>
+            <p><strong><em>Alternative formats</em></strong> To request this document in an alternative format, such as large print or on coloured paper, please contact Tobias Kauer at T.Kauer@ed.ac.uk.</p>
+            <p><strong><em>General information.</em></strong> For general information about how we use your data, go to: edin.ac/privacy-research</p>
+          </v-card-text>
+        </v-card>
+      </v-overlay>
+
+      
+        <div class="ear" @click="showAbout = true" style="cursor: pointer">
           <span>about</span>
         </div>
-      </router-link>
+      
       
       <ul class="stepnavi">
         <li v-for="e,i in steps" :key="i">
@@ -46,7 +79,7 @@
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger">How do we remember the pandemic?</p>
           <p>Since it started <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="showAbout = true">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
@@ -54,7 +87,7 @@
             <p v-if="clickedDemo && !consent">Please consent first.</p>
             <p style="margin-top: 15px">
               <a href="https://www.designinformatics.org/" target="_blank"><img class="logo" src="../assets/ed.png" style="width: 200px"/></a><br>
-              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%"/></a>
+              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%; margin-top: 10px;"/></a>
             </p>
         </div>
 
@@ -92,14 +125,14 @@
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger">How do we remember the pandemic?</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="showAbout = true">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
             </v-btn>
             <p style="margin-top: 15px">
               <a href="https://www.designinformatics.org/" target="_blank"><img class="logo" src="../assets/ed.png" style="width: 200px"/></a><br>
-              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%"/></a>
+              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%; margin-top: 10px;"/></a>
             </p>
         </div>
 
@@ -141,7 +174,7 @@
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger">What are the measures & policy responses connected to data about the pandemic?</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago, we are confronted with charts about new cases or even deaths. What are the events behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <router-link to="/participantSheet">information letter</router-link> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="showAbout = true">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
@@ -149,7 +182,7 @@
             <p v-if="clickedDemo && !consent">Please consent first.</p>
             <p style="margin-top: 15px">
               <a href="https://www.designinformatics.org/" target="_blank"><img class="logo" src="../assets/ed.png" style="width: 200px"/></a><br>
-              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%"/></a>
+              <a href="https://uclab.fh-potsdam.de/" target="_blank"><img class="logo" src="../assets/fh.png" style="width: 40%; margin-top: 10px;"/></a>
             </p>
         </div>
 
@@ -219,9 +252,10 @@ export default {
       currentStepId: 0, //what part of the page are we in?
       steps: Array(3).fill(0),
       progress: 0,
-      ribbonText: "Help our research",
+      showAbout: false,
       initialClickOnAddButton: false,
       clickedDemo: false,
+
     }
   },
 
@@ -246,14 +280,13 @@ export default {
  
   mounted () {
     this.mounted = true;    
-      window.setInterval(() => {
+      /*window.setInterval(() => {
         if (this.ribbonText == "Help our research") {
           this.ribbonText = "Do our survey"
         } else {
           this.ribbonText = "Help our research"
         }
-  }, 10000)
-
+  }, 10000)*/
   },
 
 
@@ -424,7 +457,7 @@ p.smaller {
   width: 100%;
   left: 0;
   height: 100%;  
-  z-index: -990
+  z-index: -1000
 }
 
 
@@ -447,6 +480,18 @@ p.smaller {
     -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
   filter: grayscale(100%);
 }
+
+  #about >>> .v-overlay__content {
+    width: 100%;
+    height: 100%;
+  }
+
+  #about h2, #about h3 {
+  margin: 10px 0 10px 0px;
+  font-family: 'Roboto Slab', serif;
+  font-weight: 700;
+  line-height: 30px;
+  }
 
 .stepnavi {
   position: fixed;

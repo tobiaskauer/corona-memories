@@ -39,7 +39,7 @@ module.exports = {
           const countries = await Context.findAll({
             attributes: ['country',[Sequelize.fn('COUNT', Sequelize.col("country")), "count"]],
             group: ['country'],
-            order: [[Sequelize.literal('count'), 'DESC']]
+            order: [[Sequelize.col("country"), 'DESC']]
           });
     
           res.send(countries)

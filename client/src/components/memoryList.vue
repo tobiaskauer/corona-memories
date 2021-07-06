@@ -27,7 +27,7 @@ export default {
     return {
         sort: 'date',
         desc: true,
-        scrollLogIntervall: 5000,
+        scrollLogIntervall: 3000,
     }
   },
 
