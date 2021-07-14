@@ -29,24 +29,26 @@ export default {
         largeEnough: false,
     }
   },
+  
+  computed: {
+    manualNavigation: function() {return this.$store.state.manualNavigation}
+  },
 
   watch:  {
   },
 
   created() {
-    let testPaths = ['embedded','separated','contextual']
-    this.chosenPath = testPaths[Math.floor(Math.random() * 3)] //TODO Get from localStorage (to have people keep their chosen option
-    //this.chosenPath = 'contextual' // CODE HARD WHILE BETAing
-    //this.chosenPath = 'embedded' // CODE HARD WHILE BETAing
-    //this.chosenPath = 'separated' // CODE HARD WHILE BETAing
+    this.chosenPath = this.$router.history.current.name
     this.$store.commit('setSession',{hash: nanoid(), path: this.chosenPath})
-    //this.chosenPath = 'data-discourse-question' // CODE HARD WHILE BETAing
 
     window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
     this.$store.dispatch('setCountries')
     this.$store.dispatch('setCurrentCountry',"World")
     this.$store.commit('setSession',{hash: nanoid(), path: this.chosenPath})
     window.addEventListener('beforeunload',  this.endSession)
+
+
+    
 
   },
 
