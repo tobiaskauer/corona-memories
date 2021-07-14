@@ -30,7 +30,7 @@
                         ></v-checkbox>
                         <v-textarea
                         name="input-7-1"
-                        label="How did the responses and data help you better understand the pandemic?"
+                        label="Does this help you better understand the pandemic?"
                         outlined
                         v-model="comment"
                         

@@ -7,7 +7,6 @@
       light
       style="margin: 0px;"
       class="mx-left">
-
       
       <v-card-text v-if="returnID" style="padding-top: 0px">
         <v-card-title class="ma-0" style="padding-left: 0">
@@ -18,8 +17,7 @@
         </v-btn>
         </v-card-title>  
         <p>
-          <strong>It will be visible soon.</strong>
-          Let us know a bit more about your answer.
+           It will be visible soon. Please let us know a bit more about your answer.
         </p> 
         <hr style="margin-bottom: 10px;" />
         <!--<v-btn small outlined color="primary" block :href="'https://docs.google.com/forms/d/e/1FAIpQLSfydTg7ZpZG21s9in4M-mM_8BxA5mZm73K2p5KDshaAcRipgA/viewform?entry.62570228='+session" target="_blank">Fill out Survey</v-btn>-->
@@ -44,7 +42,7 @@
                     </v-form>
                                         <template v-if="!surveyStatus">
                         <v-btn
-                            style="margin-bottom: 100px;"
+                            style="margin-bottom: 10px;"
                             block
                             color="primary"
                             @click="sendSurvey" 
@@ -128,7 +126,6 @@
                         append-icon="mdi-calendar"
                         outlined
                         readonly
-                        
                         dense
                         v-bind="attrs"
                         v-on="on"
@@ -140,8 +137,6 @@
                     ></v-date-picker>
                   </v-menu>
                 </template>
-                
-               
                <v-checkbox
                 class="ma-0"
                   v-model="exactDate"
@@ -157,9 +152,6 @@
         @click="sendMemory">Send</v-btn>
       </v-card-text>
     </v-card>
-    
-      
-  
 </template>
 
 <script>
@@ -185,20 +177,24 @@ export default {
       returnID: null,
       isFormValid: false,
       checkboxes: [
-        {text: "Reading other people’s stories inspired me to share.", key: "inspiredByOthers", checked: false},
-        {text: "It feels good to talk about this.", key: "feelsGood", checked: false},
-        {text: "Because I think my story can help others.", key: "helpOthers", checked: false},
-        {text: "None of the above (please describe below)", key: "none", checked: false}, //please describe below
+        //{text: "Reading other people’s stories inspired me to share.", key: "inspiredByOthers", checked: false},
+        //{text: "It feels good to talk about this.", key: "feelsGood", checked: false},
+        //{text: "Because I think my story can help others.", key: "helpOthers", checked: false},
+        //{text: "None of the above (please describe below)", key: "none", checked: false}, //please describe below
+        
+        {text: "I wanted to share how I felt.", key: "sharingEmotions", checked: false},
+        
+        {text: "I wanted to share my opinion.", key: "expressingOpinions", checked: false},
+        {text: "I wanted my story to complement other stories.", key: "addOwnStory", checked: false},
+        {text: "Other stories made me think about my own story.", key: "matchingKnowledge", checked: false},
 
-
-        /*comment on the chart --> 
-        exporessing opinions --> wanted to share how i see things
-        sharing emotions --> wanted to share how i felt
-        adding anecdotal evidence --> 
-        ?? matching knowledges --> they made me think about my own experiencs
-        participate in public sensemaking
-        adding one's own story
-        sparking discussions --> ??*/
+        {text: "I want everybody to better understand people's experiences.", key: "publicSensemaking", checked: false},
+        {text: "I want to point out something in the data.", key: "relatetoData", checked: false},
+        
+        //{text: "", key: "rectifyWrong", checked: false}, //
+        //{text: "", key: "sparkDiscussion", checked: false}, //no discussion possible
+        //{text: "", key: "claimingInterest", checked: false}, //
+        //{text: "", key: "anecdotalEvidence", checked: false}, //doubles with own story
       ],
       other: "",
       rules: {
