@@ -13,6 +13,7 @@ let parseDate = d3.utcParse("%Y-%m-%d")
 export default new Vuex.Store({
   state: {
     session: {}, 
+    manualNavigation: null,
     countries: [], //list of country Strings
     currentCountry: "", //String of current country
 
@@ -292,18 +293,17 @@ export default new Vuex.Store({
     async setCountries (context) {
       //let countryMemories =(await memoryService.countryMemories()).data //for countries with memories, count them 
       let countryMemories = (context.state.session.path != 'contextual') ? (await memoryService.countryMemories()).data : (await contextService.countryContexts()).data
-
+      
       let countries = (await caseService.getCountries()).data.map(e => {
         let index = countryMemories.findIndex(countryMemory => countryMemory.country == e.country) //find index of country with memories
 
         let n_memories = (index !== -1) ? countryMemories[index].count : 0
-      
+        
         return {
           name: e.country,
           n_memories: (e.country != "World") ? n_memories : countryMemories.map(country => country.count).reduce((prev, next) => prev + next)
         } 
       }) //get _ALL_ countries once when mounting (no need to to this reactive)
-      
       
 
       //let countries = ['World','Germany','France','Italy','United States','United Kingdom','Switzerland']

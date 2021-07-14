@@ -62,7 +62,9 @@ export default {
   methods: {
       logScroll: function() { //intervall for logging scroll position every X seconds. (yeah. this could have been setIntervall.)
         setTimeout(() => {
-            interactionService.sendInteraction({event: 'scrollPosition', element: window.scrollY})
+            if(this.$store.state.session.path == "separated") {
+                interactionService.sendInteraction({event: 'scrollPosition', element: window.scrollY})
+            }
             this.logScroll()
         },this.scrollLogIntervall)
       },

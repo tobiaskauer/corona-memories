@@ -40,8 +40,97 @@
       </v-overlay>
 
       
-        <div class="ear" @click="showAbout = true" style="cursor: pointer">
+        <!--<div class="ear" @click="showAbout = true" style="cursor: pointer">
           <span>about</span>
+        </div>-->
+
+        <!--<div class="nav">
+          <span id="burger">
+            <svg height="32px" id="Layer_1" style="enable-background:new 0 0 32 32;" version="1.1" viewBox="0 0 32 32" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M4,10h24c1.104,0,2-0.896,2-2s-0.896-2-2-2H4C2.896,6,2,6.896,2,8S2.896,10,4,10z M28,14H4c-1.104,0-2,0.896-2,2  s0.896,2,2,2h24c1.104,0,2-0.896,2-2S29.104,14,28,14z M28,22H4c-1.104,0-2,0.896-2,2s0.896,2,2,2h24c1.104,0,2-0.896,2-2  S29.104,22,28,22z"/></svg>
+          </span>
+          <div class="">
+            <ul>
+              <li>Version A</li>
+              <li>Bersion B</li>
+              <li>Version C</li>
+            </ul>
+          </div>
+        </div>-->
+
+        <div class="nav">
+          <v-menu
+            bottom
+            left
+            max-width="550px"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                light
+                icon
+                v-bind="attrs"
+                v-on="on"
+              >
+                <v-icon>mdi-menu</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list>
+              <v-list-item two-line>
+                <v-list-item-content >
+                  <v-list-item-subtitle><em>How do people engage with context in data visualiaztions?</em></v-list-item-subtitle>
+                   <v-list-item-subtitle>You are viewing one of three visualizations. Click below to change your view:</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider></v-divider>
+            
+            <a :href="$router.resolve({name: 'embedded'}).href">
+              <v-list-item two-line :class="[($router.history.current.name == 'embedded') ? 'currentNav' : '']" @click="changeView('embedded')">
+                <v-list-item-icon>
+                 <img src="../assets/embedded-stories.png" />
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>Embedded <strong>stories</strong></v-list-item-title>
+                  <v-list-item-subtitle>People's memories about the pandemic</v-list-item-subtitle>
+                  <v-list-item-subtitle>embedded in a visualization.</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </a>
+            <v-divider></v-divider>
+            <router-link to="/embedded-policies">
+              <v-list-item two-line :class="[($router.history.current.name == 'contextual') ? 'currentNav' : '']" @click="changeView('contextual')">
+                <v-list-item-icon>
+                 <img src="../assets/embedded-policies.png" />
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>Embedded <strong>policies</strong></v-list-item-title>
+                  <v-list-item-subtitle>Country's policy responses to the pandemic</v-list-item-subtitle>
+                  <v-list-item-subtitle>embedded in a visualization.</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              </router-link>
+              <v-divider></v-divider>
+            <router-link to="/separate-stories">
+              <v-list-item two-line  :class="[($router.history.current.name == 'separated') ? 'currentNav' : '']"  @click="changeView('separated')">
+                <v-list-item-icon>
+                 <img src="../assets/separate-stories.png" />
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title><strong>Separate</strong> stories</v-list-item-title>
+                  <v-list-item-subtitle>People's memories about the pandemic</v-list-item-subtitle>
+                  <v-list-item-subtitle>as a list.</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item two-line @click="showAbout = true">
+                <v-list-item-content style="text-align: right">
+                  <v-list-item-title>About</v-list-item-title>
+                  <v-list-item-subtitle>Created by Tobias Kauer, Benjamin Bach, and Marian Dörk</v-list-item-subtitle>
+                   <v-list-item-subtitle>(University of Edinburgh, University of Applied Sciences Potsdam)</v-list-item-subtitle>
+                   <v-list-item-subtitle>Click <span style="tet-decoration: underline">here</span> to learn more about this study</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </router-link>
+            </v-list>
+          </v-menu>
         </div>
       
       
@@ -245,6 +334,10 @@ export default {
     vis
   },
 
+  props: {
+    testPath: String
+  },
+
   data () {
     return {
       mounted: false, //turns true after the first lifecycle has run (and allows to render everything in the DOM)
@@ -265,7 +358,7 @@ export default {
     newMemory:   function() {return this.$store.state.newMemory},
     context:   function() {return this.$store.state.context},
     memories:   function() {return this.$store.state.memories},
-    testPath:   function() {return this.$store.state.session.path},
+    //testPath:   function() {return this.$store.state.session.path},
     session: function() { return this.$store.getters.session.hash},
     countries:  function() {
       return this.$store.state.countries.map(country => {
@@ -280,13 +373,6 @@ export default {
  
   mounted () {
     this.mounted = true;    
-      /*window.setInterval(() => {
-        if (this.ribbonText == "Help our research") {
-          this.ribbonText = "Do our survey"
-        } else {
-          this.ribbonText = "Help our research"
-        }
-  }, 10000)*/
   },
 
 
@@ -313,6 +399,11 @@ export default {
 
     highlightConsent: function() { //highlight consent button when clicking demo content
        this.clickedDemo = true
+    },
+
+    changeView: function(view) {
+      interactionService.sendInteraction({event: 'changeView', element: view})
+      this.$store.commit("setSession",{hash: this.session, path: view})
     },
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
@@ -398,6 +489,32 @@ export default {
 
 button, .v-input, .introWrapper {
   pointer-events: all;
+}
+
+.nav {
+  position: fixed;
+  text-align: center;
+  top: 15px; 
+  right: -0px;
+  z-index: 99;
+  font-family: 'Roboto Slab', serif;
+  
+  
+  width: 100px;
+  pointer-events: all;
+}
+
+.currentNav {
+  background: #FA5E2D;
+  
+}
+
+.v-menu__content a {
+  text-decoration: none !important;
+}
+
+.currentNav .v-list-item__title {
+  color: white;
 }
 
 .ear {
