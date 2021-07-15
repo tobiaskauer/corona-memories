@@ -40,7 +40,7 @@
           <v-btn color="primary" outlined small elevation="2" @click="randomMemory" style="margin-top: 10px">
             <v-icon small style="margin-right: 5px">mdi-message-text</v-icon>Show random
           </v-btn><br />
-          <v-btn v-if="$store.state.activeMemories.length > 0" plain x-small @click="hideMemories" >Hide all</v-btn>
+          <v-btn v-if="$store.state.activeMemories.length > 1" plain x-small @click="hideMemories" >Hide all</v-btn>
           </div>
 
 
