@@ -5,7 +5,7 @@
         <v-card elevation="4" light style="width: 80%; min-width: 400px; height: 80%; margin: 5% auto; overflow-y: scroll">
           <v-system-bar color="primary" dark>
             <v-spacer></v-spacer>
-            <v-btn icon @click="showAbout = false">
+            <v-btn icon @click="toggleAbout(false)">
           <v-icon color="lightgrey" small>mdi-close-circle</v-icon>
         </v-btn>
           </v-system-bar>
@@ -19,22 +19,22 @@
               <strong>Researchers</strong>: Tobias Kauer, Dr. Marian Dörk<br>
             </p>
 
-            <p>This study was certified according to the Informatics Research Ethics Process, RT number 5766. Please take time to read the following information carefully. You should keep this page for your records.</p>
-            <p><strong><em>Who are the researchers?</em></strong> The study is being conducted by Dr. Benjamin Bach and Tobias Kauer at the University of Edinburgh and Dr. Marian Dörk, University of Applied Sciences Potsdam.</p>
+            <p>This study was certified according to the <a href="https://web.inf.ed.ac.uk/infweb/research/ethics-and-integrity/ethics-procedure">Informatics Research Ethics Process</a>, RT number 5766. Please take time to read the following information carefully. You should keep this page for your records.</p>
+            <p><strong><em>Who are the researchers?</em></strong> The study is being conducted by <a href="https://aviz.fr/~bbach/homepage/index-homepage.html">Dr. Benjamin Bach</a> and <a href="https://tobiaskauer.org">Tobias Kauer</a> at the <a href="https://www.ed.ac.uk/">University of Edinburgh</a> and <a href="https://mariandoerk.de/">Dr. Marian Dörk</a>, <a href="https://uclab.fh-potsdam.de/">University of Applied Sciences Potsdam</a>.</p>
             <p><strong><em>What is the purpose of the study?</em></strong> This study aims to understand  how people read data visualizations and which stories they want to tell about the data in the visualization. 
-            <p><strong><em>Why have I been asked to take part?</em></strong> You have visited the website https://coronamemories.tobiaskauer.org.<p>
+            <p><strong><em>Why have I been asked to take part?</em></strong> You have visited the website <a href="https://coronamemories.tobiaskauer.org">https://coronamemories.tobiaskauer.org</a>.<p>
 
-            <p><strong><em>Do I have to take part?</em></strong> Your participation and use of the website is entirely voluntary and you may stop using it at any time and for any reason. Your rights will not be affected. If you wish to withdraw, contact Tobias Kauer (T.Kauer@ed.ac.uk) and state which comment you wish to remove. If you stop participating at any point, data collection will end, but data already collected will be retained in anonymous form. We will stop using your data in any publications or presentations submitted after you have withdrawn consent. However, we will keep copies of your original consent, and of your withdrawal request.</p>
+            <p><strong><em>Do I have to take part?</em></strong> Your participation and use of the website is entirely voluntary and you may stop using it at any time and for any reason. Your rights will not be affected. If you wish to withdraw, contact Tobias Kauer (<a href="mailto:T.Kauer@ed.ac.uk">T.Kauer@ed.ac.uk</a>) and state which comment you wish to remove. If you stop participating at any point, data collection will end, but data already collected will be retained in anonymous form. We will stop using your data in any publications or presentations submitted after you have withdrawn consent. However, we will keep copies of your original consent, and of your withdrawal request.</p>
             <p><strong><em>What will happen if I decide to take part? </em></strong>We will record your activity (timestamps and mouse events) on the website as well as collect your shared stories. If you decide to take part in the online survey, we will ask you about your experience viewing the visualization on the website mentioned above and may use your answers in future research publications. If you choose to submit a story to the website, we may use your submission in future research publications. </p>
             <p><strong><em>Are there any risks associated with taking part?</em></strong> There are no significant risks associated with participation. </p>
             <p><strong><em>Are there any benefits associated with taking part?</em></strong> You will support publicly funded research on creating interfaces for commenting on visualizations.</p>
             <p><strong><em>What will happen to the results of this study? </em></strong> The results of this study may be summarised in published scientific articles, reports and presentations. With your consent, short extracts of submitted stories and written feedback from the survey may be quoted in research papers to support key findings of  our research. Your data may be archived for a minimum of two years. None of the publications will provide any monetary benefit to the research team and we are happy to send you a copy of any publication that emerged out of our study.</p>
-            <p><strong><em>WData protection and confidentiality.</em></strong> Your data will be processed in accordance with Data Protection Law. Your data will be referred to by a unique participant number rather than by name. Your data will only be viewed by the research team stated above. All electronic data will be stored on a password-protected encrypted computer, on the School of Informatics’ secure file servers, or on the University’s secure encrypted cloud storage services (DataShare, ownCloud, or Sharepoint).</p>
-            <p><strong><em>What are my data protection rights?</em></strong> The University of Edinburgh is a Data Controller for the information you provide. You have the right to access information held about you. Your right of access can be exercised in accordance with the Data Protection Law. You also have other rights including rights of correction, erasure and objection. For more details, including the right to lodge a complaint with the Information Commissioner’s Office, please visit www.ico.org.uk. Questions, comments and requests about your personal data can also be sent to the University Data Protection Officer at dpo@ed.ac.uk. </p>
-            <p><strong><em>Who can I contact?</em></strong> If you have any further questions about the study, please contact the lead researcher, Tobias Kauer at T.Kauer@ed.ac.uk. If you wish to make a complaint about the study, please contact inf-ethics@inf.ed.ac.uk. When you contact us, please provide the study title and detail the nature of your complaint.</p>
-            <p><strong><em>Updated information.</em></strong> If the research project changes in any way, an updated Participant Information Sheet will be made available on https://web.inf.ed.ac.uk/infweb/research/study-updates.</p>
-            <p><strong><em>Alternative formats</em></strong> To request this document in an alternative format, such as large print or on coloured paper, please contact Tobias Kauer at T.Kauer@ed.ac.uk.</p>
-            <p><strong><em>General information.</em></strong> For general information about how we use your data, go to: edin.ac/privacy-research</p>
+            <p><strong><em>Data protection and confidentiality.</em></strong> Your data will be processed in accordance with Data Protection Law. Your data will be referred to by a unique participant number rather than by name. Your data will only be viewed by the research team stated above. All electronic data will be stored on a password-protected encrypted computer, on the School of Informatics’ secure file servers, or on the University’s secure encrypted cloud storage services (DataShare, ownCloud, or Sharepoint).</p>
+            <p><strong><em>What are my data protection rights?</em></strong> The University of Edinburgh is a Data Controller for the information you provide. You have the right to access information held about you. Your right of access can be exercised in accordance with the Data Protection Law. You also have other rights including rights of correction, erasure and objection. For more details, including the right to lodge a complaint with the Information Commissioner’s Office, please <a href="visit www.ico.org.uk">visit www.ico.org.uk</a>. Questions, comments and requests about your personal data can also be sent to the University Data Protection Officer at <a href="mailto:dpo@ed.ac.uk">dpo@ed.ac.uk</a>. </p>
+            <p><strong><em>Who can I contact?</em></strong> If you have any further questions about the study, please contact the lead researcher, Tobias Kauer at <a href="mailto:T.Kauer@ed.ac.uk">T.Kauer@ed.ac.uk</a>. If you wish to make a complaint about the study, please contact inf-ethics@inf.ed.ac.uk. When you contact us, please provide the study title and detail the nature of your complaint.</p>
+            <p><strong><em>Updated information.</em></strong> If the research project changes in any way, an updated Participant Information Sheet will be made available on <a href="https://web.inf.ed.ac.uk/infweb/research/study-updates">https://web.inf.ed.ac.uk/infweb/research/study-updates</a>.</p>
+            <p><strong><em>Alternative formats</em></strong> To request this document in an alternative format, such as large print or on coloured paper, please contact Tobias Kauer at <a href="mailto:T.Kauer@ed.ac.uk">T.Kauer@ed.ac.uk</a>.</p>
+            <p><strong><em>General information.</em></strong> For general information about how we use your data, go to: <a href="https://edin.ac/privacy-research">edin.ac/privacy-research</a></p>
           </v-card-text>
         </v-card>
       </v-overlay>
@@ -57,81 +57,9 @@
           </div>
         </div>-->
 
-        <div class="nav">
-          <v-menu
-            bottom
-            left
-            max-width="550px"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                light
-                icon
-                v-bind="attrs"
-                v-on="on"
-              >
-                <v-icon>mdi-menu</v-icon>
-              </v-btn>
-            </template>
-
-            <v-list>
-              <v-list-item two-line>
-                <v-list-item-content >
-                  <v-list-item-subtitle><em>How do people engage with context in data visualiaztions?</em></v-list-item-subtitle>
-                   <v-list-item-subtitle>You are viewing one of three visualizations. Click below to change your view:</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-              <v-divider></v-divider>
-            
-            <a :href="$router.resolve({name: 'embedded'}).href">
-              <v-list-item two-line :class="[($router.history.current.name == 'embedded') ? 'currentNav' : '']" @click="changeView('embedded')">
-                <v-list-item-icon>
-                 <img src="../assets/embedded-stories.png" />
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>Embedded <strong>stories</strong></v-list-item-title>
-                  <v-list-item-subtitle>People's memories about the pandemic</v-list-item-subtitle>
-                  <v-list-item-subtitle>embedded in a visualization.</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-            </a>
-            <v-divider></v-divider>
-            <router-link to="/embedded-policies">
-              <v-list-item two-line :class="[($router.history.current.name == 'contextual') ? 'currentNav' : '']" @click="changeView('contextual')">
-                <v-list-item-icon>
-                 <img src="../assets/embedded-policies.png" />
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title>Embedded <strong>policies</strong></v-list-item-title>
-                  <v-list-item-subtitle>Country's policy responses to the pandemic</v-list-item-subtitle>
-                  <v-list-item-subtitle>embedded in a visualization.</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-              </router-link>
-              <v-divider></v-divider>
-            <router-link to="/separate-stories">
-              <v-list-item two-line  :class="[($router.history.current.name == 'separated') ? 'currentNav' : '']"  @click="changeView('separated')">
-                <v-list-item-icon>
-                 <img src="../assets/separate-stories.png" />
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title><strong>Separate</strong> stories</v-list-item-title>
-                  <v-list-item-subtitle>People's memories about the pandemic</v-list-item-subtitle>
-                  <v-list-item-subtitle>as a list.</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-              <v-list-item two-line @click="showAbout = true">
-                <v-list-item-content style="text-align: right">
-                  <v-list-item-title>About</v-list-item-title>
-                  <v-list-item-subtitle>Created by Tobias Kauer, Benjamin Bach, and Marian Dörk</v-list-item-subtitle>
-                   <v-list-item-subtitle>(University of Edinburgh, University of Applied Sciences Potsdam)</v-list-item-subtitle>
-                   <v-list-item-subtitle>Click <span style="tet-decoration: underline">here</span> to learn more about this study</v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-            </router-link>
-            </v-list>
-          </v-menu>
-        </div>
+        
+          <mymenu @toggleAbout="toggleAbout($event)" />
+        
       
       
       <ul class="stepnavi">
@@ -168,7 +96,7 @@
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger">How do we remember the pandemic?</p>
           <p>Since it started <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="showAbout = true">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="toggleAbout(true)">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
@@ -214,7 +142,7 @@
           <h1>corona<br /><span>memories</span></h1>
           <p class="larger">How do we remember the pandemic?</p>
           <p>Since the start of the pandemic <strong>about <counter /> days</strong> ago we are confronted with charts about new cases daily. But what are the human stories behind the numbers?</p>
-          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="showAbout = true">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
+          <p class="smaller">The research is conducted by Tobias Kauer (University of Edinburgh), Benjamin Bach (University of Edinburgh), and Marian Dörk (Potsdam University of Applied Sciences). It has been granted approval by the ethics committee. By clicking the button, you indicate that you are a speaker of English and at least 18 years old. You have read the <span style="text-decoration: underline; cursor: pointer" @click="toggleAbout(true)">information letter</span> and you voluntarily agree to participate, and understand you can stop your participation at any time. You agree that your anonymous data may be kept permanently in Edinburgh University archived and may be used by qualified researchers for teaching and research purposes.</p>
             <v-btn class="transition-swing" :elevation="clickedDemo ? 10 : 0" color="primary" outlined @click="enter('#progressTarget')">
               <v-icon small>mdi-check-circle</v-icon>
              I agree, show me
@@ -321,6 +249,7 @@ import explore from './explore'
 import survey from './survey'
 import counter from './counter'
 import vis from './vis'
+import mymenu from './menu'
 
 export default {
   name: 'App',
@@ -331,7 +260,8 @@ export default {
     explore,
     memoryList,
     survey,
-    vis
+    vis,
+    mymenu
   },
 
   props: {
@@ -358,8 +288,6 @@ export default {
     newMemory:   function() {return this.$store.state.newMemory},
     context:   function() {return this.$store.state.context},
     memories:   function() {return this.$store.state.memories},
-    //testPath:   function() {return this.$store.state.session.path},
-    session: function() { return this.$store.getters.session.hash},
     countries:  function() {
       return this.$store.state.countries.map(country => {
         return {
@@ -379,19 +307,8 @@ export default {
 
   methods: {
     enter: function(target) { //by clicking the "I agree"-button
-
-    this.consent = true
-    interactionService.sendInteraction({event: 'consent'})
-
-      /*switch(this.testPath) {
-        case "data-discourse-question":
-          this.explore = true;
-          break;
-        case "data-question-discourse": 
-          this.$store.commit("toggleForm",true)
-        break;
-    } */
-      
+      this.consent = true
+      interactionService.sendInteraction({event: 'consent'})      
       this.$nextTick(() => { //wait until consent = true has taken effect and the DOM has rendered all objects
         this.$vuetify.goTo(target, {duration: 2000}); //then scroll to them
       });
@@ -401,9 +318,8 @@ export default {
        this.clickedDemo = true
     },
 
-    changeView: function(view) {
-      interactionService.sendInteraction({event: 'changeView', element: view})
-      this.$store.commit("setSession",{hash: this.session, path: view})
+    toggleAbout: function(state) {
+      this.showAbout = state
     },
 
     stepEnterHandler({element, direction}) {//handle scrolling from step to step
@@ -451,9 +367,11 @@ export default {
 </script>
 
 <style src="vue-scrollama/dist/vue-scrollama.css"></style>
-
-<style scoped>
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;900&display=swap');
+
+</style>
+<style scoped>
 
 .introWrapper, .explorationWrapper, .formWrapper {
   padding-top: 10px;
@@ -491,31 +409,7 @@ button, .v-input, .introWrapper {
   pointer-events: all;
 }
 
-.nav {
-  position: fixed;
-  text-align: center;
-  top: 15px; 
-  right: -0px;
-  z-index: 99;
-  font-family: 'Roboto Slab', serif;
-  
-  
-  width: 100px;
-  pointer-events: all;
-}
 
-.currentNav {
-  background: #FA5E2D;
-  
-}
-
-.v-menu__content a {
-  text-decoration: none !important;
-}
-
-.currentNav .v-list-item__title {
-  color: white;
-}
 
 .ear {
   position: fixed;

@@ -3,10 +3,9 @@
     <!-- axes and baseline chart -->
     <g class="axis xAxis" v-axis:x="scales" :transform="`translate(0,${dimensions.height-dimensions.top-dimensions.bottom+10})`"></g>
     <g class="axis yAxis" v-axis:y="scales" :transform="`translate(${dimensions.width-dimensions.right})`"></g> 
-    <text :transform="`translate(${dimensions.width-dimensions.right+10},${dimensions.height-dimensions.top})`" opacity=".5" text-anchor="end" font-size=".5em">
-      <tspan x="0">rolling average</tspan>
-      <tspan x="0" dy="1.2em">of new cases</tspan>
-      <tspan x="0" dy="1.2em">per 100.000</tspan>
+    <text :transform="`translate(${dimensions.width-dimensions.right+10},${dimensions.height-dimensions.top})`" opacity=".5" text-anchor="end" font-size=".8em">
+      <tspan x="0">rolling average of new</tspan>
+      <tspan x="0" dy="1.2em">cases per 100.000</tspan>
     </text>
     <path
       :d="caseLine"
