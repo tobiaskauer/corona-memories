@@ -88,7 +88,7 @@ import Datepicker from './datepicker.vue'
 import memoryCard from './memoryCard.vue'
 import interactionService from '@/services/interactionService'
 
-
+//import { mapGetters } from 'vuex'
 
 
 export default {
@@ -104,6 +104,7 @@ export default {
       opacity: 0.8, //circle opacity when not hoveredü
       lineGenerator: d3.line().x(d => d.x).y(d => d.y),
       boxWidth: 350,
+      //beeswarm: []
     }
   },
 
@@ -115,6 +116,7 @@ export default {
   },
 
   computed: {
+    //...mapGetters(['beeswarm']), //some say this would help reactivity. it does not. https://stackoverflow.com/questions/43939024/reactive-getter-in-vuex
     dimensions: function() {return this.$store.state.dimensions},
     cases:      function() {return this.$store.state.cases},
     beeswarm:   function() {return this.$store.getters.beeswarm},
@@ -168,7 +170,15 @@ export default {
     },
   },
 
-  watch: {
+/*  watch: {
+    display: {
+      immediate: true,
+      handler() {this.beeswarm = this.$store.getters.beeswarm; console.log(this.beeswarm)}
+    } 
+  },*/
+
+  created() {
+    
   },
 
   mounted() {

@@ -115,13 +115,11 @@ export default new Vuex.Store({
   },
 
   mutations: {
-    setSession(state, payload)          {state.session = payload},
-    setCases(state, payload)          {state.cases = payload},
-    setCurrentCountry(state, payload) {state.currentCountry = payload},
-    setCountries(state,payload)       {
-      state.countries = payload
-    },
-    setActiveHashtag(state,payload)    {state.activeHashtag = payload},
+    setSession(state, payload)          {Vue.set(state, "session", payload)},
+    setCases(state, payload)          {Vue.set(state, "cases", payload)},
+    setCurrentCountry(state, payload) {Vue.set(state, "currentCountry", payload)},
+    setCountries(state,payload)       { Vue.set(state, "countries", payload)},
+    setActiveHashtag(state,payload)    {Vue.set(state, "activeHashtag", payload)},
     setActiveMemories(state,payload) {
       if(payload == null) {
         state.activeMemories = []
@@ -129,7 +127,8 @@ export default new Vuex.Store({
         let index = state.activeMemories.findIndex(id => id == payload)
         if(index === -1) { //add if it does noes exist
           //state.activeMemories.push(payload) //use this to display several active memories
-          state.activeMemories = [payload] //use this to only have one active memory
+          //state.activeMemories = [payload] //use this to only have one active memory
+          Vue.set(state, "activeMemories", [payload])
         } else {
           state.activeMemories.splice(index,1) //delete if it already exists (clicked on close/clicked on bubble)
         }
@@ -138,13 +137,15 @@ export default new Vuex.Store({
     },
 
     setMemories(state, payload) {
-      state.memories = payload.map(memory => {
+      let memories = payload.map(memory => {
         let hashtags = memory.category ? memory.category : memory.comment.match(/#[a-z]+/gi) //return array of all hashtags in comment or categories in context
         //memory.hashtag = hashtags ? hashtags[0] : null //TODO: use whole array, not just first string
         memory.hashtag = hashtags ? hashtags : null
         memory.date = parseDate(memory.dateString) //parse String to Date
         return memory
       })
+      Vue.set(state, "memories", memories)
+      
     },
 
     setContext(state, payload) {
@@ -241,8 +242,8 @@ export default new Vuex.Store({
     },
 
     async setMemories (context) {
-      
       let session = context.state.session
+      
 
       //this could have been done faster and with less db requests but.... look at me... who am I fooling... it's getting out of hand anyway
       let contexts = (await contextService.getContexts({
@@ -258,34 +259,18 @@ export default new Vuex.Store({
 
         //across views (e.g. embedded / contextual) have similar amounts of bubbles
         let smallerBucket = Math.min(contexts.length, memories.length) //are there fewer memories or contexts
-        let threshold = 100//have at least X items there
+        let threshold = 500//have at least X items there
         let numberOfBubbles = Math.max(smallerBucket, threshold) 
         let bubbles = (session.path == 'contextual') ? contexts : memories
         
         while(bubbles.length > numberOfBubbles) {
           let r = Math.floor(Math.random() * bubbles.length)
           bubbles.splice(r, 1)
+          
         }
-
-     /* if(session.path == 'contextual') { //based on current testing path, get either context info or "real" memories
-        bubbles = (await contextService.getContexts({
-          attributes: [['date', 'dateString'], 'country', 'category', 'comment', ['index', 'id']],
-          country: context.state.currentCountry,
-          })).data
-      } else {
-        bubbles = (await memoryService.getMemories({
-          attributes: [['date', 'dateString'], 'exactDate', 'country', 'comment', 'id'],
-          country: context.state.currentCountry,
-          flagged: false //don't include memories flagged for review
-          })).data
-      }*/
 
         context.commit('setMemories',bubbles) //write memories to state
         context.commit('setHashtags',bubbles)  //also compute new hashtags from these memories
-
-          
-
-        
     },
 
     
