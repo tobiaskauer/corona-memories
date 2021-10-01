@@ -1,5 +1,5 @@
 <template>
-<div class="nav">
+<div class="nav" v-if="displayMenu">
   <v-menu
             bottom
             left
@@ -7,12 +7,14 @@
           >
             <template v-slot:activator="{ on, attrs }">
               <v-btn
+               
                 light
-                icon
+                text
                 v-bind="attrs"
                 v-on="on"
               >
-                <v-icon>mdi-menu</v-icon>
+                
+                <v-icon>mdi-menu</v-icon> change view
               </v-btn>
             </template>
 
@@ -86,7 +88,7 @@ import interactionService from '@/services/interactionService'
 export default {
   data () {
     return {
-        
+        displayMenu: false,
     }
   },
 
@@ -94,15 +96,19 @@ export default {
      session: function() { return this.$store.getters.session},
  },
 
- mounted () {
+ mounted () {     
+       setTimeout(() => {
+         this.displayMenu = true
+       }, 50);
      
  },
 
   methods: {
-    changeView: function(view) {
+    changeView: function(view) { 
       interactionService.sendInteraction({event: 'changeView', element: view})
       this.$store.commit("setSession",{hash: this.session.hash, path: view})
-      console.log(this.session, view)
+      this.$store.dispatch('setCountries')
+      this.$store.dispatch('setMemories')
     },
   }
 }
@@ -113,12 +119,11 @@ export default {
   position: fixed;
   text-align: center;
   top: 15px; 
-  right: -0px;
+  right: 10px;
   z-index: 99;
   
   
   
-  width: 100px;
   pointer-events: all;
 }
 
@@ -137,5 +142,12 @@ font-size: 1em;
 
 .currentNav .v-list-item__title {
   color: white;
+}
+
+.v-btn {
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-family: 'Roboto Slab', serif;
 }
 </style>
