@@ -58,7 +58,7 @@
         </div>-->
 
         
-          <mymenu @toggleAbout="toggleAbout($event)" />
+          <mymenu @toggleAbout="toggleAbout($event)" v-if="consent" />
         
       
       
@@ -86,6 +86,7 @@
       <template v-if="testPath == 'embedded'">
         <div slot="graphic" class="visWrapper"> 
         <vis
+        v-if="memories.length > 0"
           :progress="progress"
           :consent="consent"
           :display="testPath"
@@ -362,7 +363,8 @@ export default {
         this.$vuetify.goTo("#progressTarget", {duration: 500}); //then scroll to them
       }
     },
-  }
+  },
+
 }
 </script>
 

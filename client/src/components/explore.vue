@@ -74,8 +74,10 @@ export default {
     activeMemories: function() {return this.$store.getters.activeMemories},
     countries:  function() {
       return this.$store.state.countries.map(country => {
+        let label = country.n_memories > 500 ? "500+" : country.n_memories
+        
         return {
-          text: country.name + " (" + country.n_memories + ")",
+          text: country.name + " (" + label + ")",
           value: country.name
         }
       })
