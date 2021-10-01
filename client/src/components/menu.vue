@@ -99,7 +99,7 @@ export default {
  mounted () {     
        setTimeout(() => {
          this.displayMenu = true
-       }, 50);
+       }, 5000);
      
  },
 

@@ -11,7 +11,15 @@
           </v-system-bar>
           <v-card-title><h2>About this research</h2></v-card-title>
           <v-card-text>
-            <p>We are interested how people read and engage with different kinds of contextual information in data visualizations.<br>If you have comments or suggestions about this research please contact Tobias Kauer at T.Kauer@ed.ac.uk.</p>
+            <p>
+              We are interested how people read and engage with different kinds of contextual information in data visualizations.<br>
+              If you have comments or suggestions about this research please contact Tobias Kauer at T.Kauer@ed.ac.uk.<br>
+              <ul>
+                <li>CoViD data from <a href="https://coronavirus.jhu.edu">John Hopkins University</a> via <a href="https://disease.sh">https://disease.sh</a></li>
+                <li>Policy responses from <a href="https://www.coronanet-project.org/">https://www.coronanet-project.org/</a></li>
+              </ul>
+
+            </p>
             <h3>Participant Information Sheet</h3>
             <p>
               <strong>Project Title</strong>: Corona Memories<br />
