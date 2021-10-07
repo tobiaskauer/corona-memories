@@ -9,7 +9,6 @@ import container from './components/container'
 //import participantSheet from './components/participantSheet'
 import store from './store'
 
-
 let routes = [
   "/embedded-stories",
   "/separate-stories",

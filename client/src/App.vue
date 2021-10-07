@@ -14,31 +14,41 @@
 </template>
 
 <script>
-import interactionService from "@/services/interactionService";
-import { nanoid } from "nanoid";
+import interactionService from '@/services/interactionService'
+import { nanoid } from 'nanoid'
 
 export default {
-  name: "App",
-  components: {},
+  name: 'App',
+  components: {
+
+  },
 
   data() {
     return {
-      chosenPath: null,
-      largeEnough: false,
-    };
+        chosenPath: null,
+        largeEnough: false,
+    }
   },
-
+  
   computed: {
-    manualNavigation: function () {
-      return this.$store.state.manualNavigation;
-    },
+    manualNavigation: function() {return this.$store.state.manualNavigation}
   },
 
-  watch: {},
+  watch:  {
+  },
 
   created() {
-    this.chosenPath = this.$router.history.current.name;
-    this.$store.commit("setSession", { hash: nanoid(), path: this.chosenPath });
+    this.chosenPath = this.$router.history.current.name
+    this.$store.commit('setSession',{hash: nanoid(), path: this.chosenPath})
+
+    window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
+    this.$store.dispatch('setCountries')
+    this.$store.dispatch('setCurrentCountry',"World")
+    this.$store.commit('setSession',{hash: nanoid(), path: this.chosenPath})
+    window.addEventListener('beforeunload',  this.endSession)
+
+
+    
 
     window.addEventListener("resize", this.resize); //detect resizing the window (to change svg dimensions)
     this.$store.dispatch("setCountries");
@@ -48,54 +58,53 @@ export default {
   },
 
   mounted() {
-    interactionService.sendInteraction({ event: "sessionStart" });
-    this.$nextTick(() => {
-      //when everything has loaded
-      this.resize(); //get true dimensions of containers
-      if (window.innerWidth > 1000) {
-        this.largeEnough = true;
+    interactionService.sendInteraction({event: 'sessionStart'})
+    this.$nextTick(() => { //when everything has loaded
+      this.resize() //get true dimensions of containers
+      if(window.innerWidth > 1000) {
+        this.largeEnough = true
       } else {
-        interactionService.sendInteraction({ event: "notLargeEnough" });
+        interactionService.sendInteraction({event: 'notLargeEnough'})
       }
-    });
+      
+    })  
   },
 
   methods: {
-    resize: function () {
-      //get dimensions and pass to vis-component
-      let height = Math.min(...[800, window.innerHeight]);
-      this.$store.dispatch("setDimensions", {
-        width: window.innerWidth,
-        height: height,
-        //left: (this.chosenPath == 'separated') ? 400 : 400 //make left col bigger if viewing list of comments
-        left: 400,
-      });
+    resize: function() { //get dimensions and pass to vis-component
+      let height = Math.min(...[800,window.innerHeight])
+        this.$store.dispatch('setDimensions', {
+          width: window.innerWidth,
+          height: height,
+          //left: (this.chosenPath == 'separated') ? 400 : 400 //make left col bigger if viewing list of comments 
+          left: 400
+        })
     },
 
-    endSession: function () {
-      interactionService.sendInteraction({ event: "sessionEnd" });
-    },
-  },
-};
+    endSession: function() {
+      interactionService.sendInteraction({event: 'sessionEnd'})
+    } 
+  }
+}
 </script>
 
 <style scoped>
-h1 {
+h1{
   margin: 10px 0 10px 0px;
-  font-family: "Roboto Slab", serif;
+  font-family: 'Roboto Slab', serif;
   font-weight: 400;
   font-size: 40px;
   color: #fa5e2d;
   line-height: 30px;
 }
 
-h1 span {
+h1 span{
   font-weight: 900;
 }
 
 #sorry {
   width: 100%;
-  background: #ffebc6;
+  background: #FFEBC6;
   min-height: 100%;
   height: 100%;
   padding-left: 50px;
