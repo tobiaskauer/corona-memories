@@ -77,6 +77,8 @@
           </li>
       </ul>
 
+      <span class="imprintabout" @click="toggleAbout(true)">about & imprint</span>
+
 
       
         <survey v-if="consent" :display="testPath" />
@@ -528,5 +530,16 @@ p.smaller {
   line-height: 15px;
   color: #FA5E2D;
   font-size: 20px;
+}
+
+.imprintabout {
+  position: fixed;
+  bottom: 10px;
+  left: 20px;
+  pointer-events: all;
+  z-index: 100;
+  cursor: pointer;
+  font-size: 9pt;
+  font-family: 'Roboto Slab', serif;
 }
   </style>

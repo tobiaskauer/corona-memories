@@ -27,7 +27,7 @@
               </v-list-item>
               <v-divider></v-divider>
             
-            <a :href="$router.resolve({name: 'embedded'}).href">
+            <a :href="$router.resolve({name: 'embedded'}).href+'#progressTarget'">
               <v-list-item two-line :class="[(session.path == 'embedded') ? 'currentNav' : '']" @click="changeView('embedded')">
                 <v-list-item-icon>
                  <img src="../assets/embedded-stories.png" />
@@ -41,7 +41,7 @@
             </a>
             <v-divider></v-divider>
             
-            <a :href="$router.resolve({name: 'contextual'}).href">
+            <a :href="$router.resolve({name: 'contextual'}).href+'#progressTarget'">
               <v-list-item two-line :class="[(session.path == 'contextual') ? 'currentNav' : '']" @click="changeView('contextual')">
                 <v-list-item-icon>
                  <img src="../assets/embedded-policies.png" />
@@ -55,7 +55,7 @@
               </a>
               <v-divider></v-divider>
             
-            <a :href="$router.resolve({name: 'separated'}).href">
+            <a :href="$router.resolve({name: 'separated'}).href+'#progressTarget'">
               <v-list-item two-line  :class="[(session.path == 'separated') ? 'currentNav' : '']"  @click="changeView('separated')">
                 <v-list-item-icon>
                  <img src="../assets/separate-stories.png" />

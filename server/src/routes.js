@@ -21,6 +21,7 @@ module.exports = (app) => {
   app.post('/getCountries',CaseController.getCountries)
 
   app.post('/sendInteraction',InteractionController.sendInteraction)
+  app.get('/getInteractions',InteractionController.getInteractions)
 
   app.post('/getContexts',ContextController.getContexts)
   app.post('/countryContexts',ContextController.countryContexts)

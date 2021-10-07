@@ -18,6 +18,7 @@
     "nanoid": "^3.1.23",
     "vue": "^2.6.11",
     "vue-async-computed": "^3.9.0",
+    "vue-meta": "^2.4.0",
     "vue-mutation-observer": "^0.1.2",
     "vue-router": "^3.5.1",
     "vue-scrollama": "^1.2.0",

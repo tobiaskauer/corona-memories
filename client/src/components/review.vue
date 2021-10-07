@@ -5,6 +5,7 @@
 				:headers="headers"
         :items="memories"
         :items-per-page="25"
+        :item-class="itemRowBackground"
         sort-by="updatedAT"
         :sort-desc="true"
         class="elevation-2"
@@ -30,7 +31,7 @@
           
           <v-dialog v-model="dialog" max-width="500px">
             <v-card>
-              <v-card-title>Are you sure you want to re-approve this item?</v-card-title>
+              <v-card-title>Are you sure you want to<template v-if="item.flagged"> re-approve</template><template v-else> report and hide</template> this item?</v-card-title>
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="blue darken-1" text @click="closeDialog">Cancel</v-btn>
@@ -41,16 +42,23 @@
           </v-dialog>
         </v-toolbar>
       </template>
+
       <template v-slot:item.updatedAT="{ item }">
         {{getDate(item.updatedAT)}}
       </template>
-      <template v-slot:item.reapprove="{ item }">
+      <template v-slot:item.approve="{ item }">
+        
          <v-btn icon @click="openDialog(item)">
         <v-icon
           small
           color="black"
         >
-          mdi-flag-remove
+          <template v-if="item.flagged">
+            mdi-flag-remove
+          </template>
+          <template v-else>
+            mdi-flag-outline
+          </template>
         </v-icon>
          </v-btn>
 
@@ -77,12 +85,12 @@ Vue.use(AsyncComputed)
 export default {
   data () {
     return {
-      headers: ["id", "updatedAT", "comment", "reapprove"].map(e=>{return{text: e, 	value: e}}),
+      headers: ["id", "updatedAT", "comment", "flagged", "approve"].map(e=>{return{text: e, 	value: e}}),
       memories: [],
 
 			counter: 0,
       dialog: false,
-      deleteIndex: -1,
+      item: {},
       status: null,
       
     }
@@ -91,17 +99,21 @@ export default {
   asyncComputed: {
     async asyncMemories() {
       return (await memoryService.getMemories({
-        attributes: ["id", "updatedAT", "comment", ],
+        attributes: ["id", "updatedAT", "flagged", "comment", ],
         //order: [["updatedAT","DESC"]], //no need to do this in query, just sort table
-        flagged: true,
+        //flagged: true,
         })).data
     }
   },
 
   methods: {
+    itemRowBackground: function (item) {
+      return item.flagged ? "flagged" : ""
+  },
     openDialog: function(item) {
       this.dialog = true
-      this.deleteIndex = item.id
+      this.item = item
+      console.log(item)
     },
 
     closeDialog () {
@@ -111,13 +123,16 @@ export default {
       })
     },
 
+    //async()
+
     async approve(){
       try {
-        memoryService.flagMemory({id: this.deleteIndex, flagged: false}).then(response => {
+        memoryService.flagMemory({id: this.item.id, flagged: !this.item.flagged}).then(response => {
           if(response.status == 200) {
-            
-            Vue.delete(this.memories,this.memories.findIndex(e=>e.id == this.deleteIndex))
-            this.status = `Item ${this.deleteIndex} was successfully re-approved.`
+            console.log(this.item)
+            Vue.delete(this.memories,this.memories.findIndex(e=>e.id == this.item.id))
+            this.status = `Item ${this.item.id} was successfully`
+            this.status += this.item.flagged ? "re-approved" : "reported and hidden."
             this.closeDialog();
           }
         })
@@ -145,4 +160,5 @@ export default {
 </script>
 
 <style scoped>
+
 </style>
