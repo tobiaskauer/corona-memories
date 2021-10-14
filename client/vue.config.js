@@ -1,5 +1,6 @@
 module.exports = {
-  publicPath: "/coronamemories/",
+  publicPath: "/",
+  //publicPath: "/coronamemories/",
   devServer:  {
     host: 'localhost',
     /*proxy: {

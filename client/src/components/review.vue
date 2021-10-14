@@ -44,7 +44,7 @@
       </template>
 
       <template v-slot:item.updatedAT="{ item }">
-        {{getDate(item.updatedAT)}}
+        {{item.updatedAT}}
       </template>
       <template v-slot:item.approve="{ item }">
         
