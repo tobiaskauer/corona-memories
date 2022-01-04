@@ -1,6 +1,7 @@
 node_modules/
 **/.DS_Store
 .sqlite
+.vscode/
 server/coronaMemories.sqlite
 coronaMemories.sqlite
 coronanet_release_allvars_210922.csv

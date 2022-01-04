@@ -7,7 +7,7 @@
       <v-app>
         <h1>corona<br /><span>memories</span></h1>
         <p>Please open this website on a larger screen.</p>
-        <small>(Yes, we know it's 2021. Sorry.)</small>
+        <small>(Yes, we know it's 2022. Sorry.)</small>
       </v-app>
     </template>
   </div>

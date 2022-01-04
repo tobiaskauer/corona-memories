@@ -10,11 +10,20 @@ import container from './components/container'
 import store from './store'
 
 let routes = [
-  "/embedded-stories",
   "/separate-stories",
-  "/embedded-policies"
+  "/embedded-policies",
+  "/embedded-stories"
 ]
 let randomRoute = routes[Math.floor(Math.random() * 3)]
+
+/*//test randomness
+let numberFrequency = {}
+for (let i = 0; i <=10000000; i++) {
+  let random = Math.floor(Math.random() * 3) //the randomness i'm using
+  if(!numberFrequency[random]) numberFrequency[random] = 0
+  numberFrequency[random]++
+}
+console.log(numberFrequency)*/
 
 
 Vue.config.productionTip = false
